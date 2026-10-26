@@ -15,7 +15,6 @@ theme:
 
 # docs/ also holds repository-maintenance documents that are not part of the site.
 exclude_docs: |
-  DOCFX-VERSION-PICKER.md
   README-FORMATTING.md
   RELEASE-WORKFLOW-SETUP.md
   STACKED-PRS.md
