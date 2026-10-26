@@ -8,6 +8,7 @@ docs_dir: docs
 
 theme:
   name: material
+  custom_dir: overrides
   features:
     - navigation.sections
     - navigation.top
@@ -20,6 +21,10 @@ exclude_docs: |
   STACKED-PRS.md
   WORKFLOW_SECURITY.md
   repository-baseline.md
+
+plugins:
+  - search
+  - meta
 
 nav:
   - Home: index.md
