@@ -1,0 +1,80 @@
+name: Deploy MkDocs Pages
+
+# Builds the documentation site (mkdocs.yml + docs/) and publishes it to GitHub Pages.
+#
+#  - Every pull request that touches the docs builds with --strict so a broken link or
+#    nav entry fails before merge; only pushes to main deploy.
+#  - Requires the repository's Pages source to be set to "GitHub Actions"
+#    (Settings > Pages) before the deploy job can succeed.
+#  - mkdocs and mkdocs-material are installed from a hash-pinned requirements file
+#    (regenerate with the uv command in its header), like the other CI tools here.
+
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '.github/requirements/mkdocs.*'
+      - '.github/workflows/mkdocs.yaml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '.github/requirements/mkdocs.*'
+      - '.github/workflows/mkdocs.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mkdocs-pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.x'
+
+      - name: Install MkDocs
+        run: pip install --require-hashes -r .github/requirements/mkdocs.txt
+
+      - name: Build site
+        env:
+          NO_MKDOCS_2_WARNING: '1'
+        run: mkdocs build --strict --site-dir site
+
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
