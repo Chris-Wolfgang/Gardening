@@ -1,0 +1,33 @@
+site_name: Gardening
+site_description: Gardening guides, plant data and tools for home gardeners
+site_url: https://chris-wolfgang.github.io/Gardening/
+repo_url: https://github.com/Chris-Wolfgang/Gardening
+repo_name: Chris-Wolfgang/Gardening
+
+docs_dir: docs
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+
+# docs/ also holds repository-maintenance documents that are not part of the site.
+exclude_docs: |
+  DOCFX-VERSION-PICKER.md
+  README-FORMATTING.md
+  RELEASE-WORKFLOW-SETUP.md
+  STACKED-PRS.md
+  WORKFLOW_SECURITY.md
+  repository-baseline.md
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started/index.md
+  - Building beds: building-beds/index.md
+  - Soil and amendments: soil/index.md
+  - Plants: plants/index.md
+  - Seasonal guide: seasonal/index.md
+  - Tools: tools/index.md
+  - Troubleshooting: troubleshooting/index.md

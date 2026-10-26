@@ -1,0 +1,32 @@
+# Example plant file. Illustrates the format; review the values before publishing.
+id: tomato
+name: Tomato
+type: fruiting vegetable
+sun: full            # full | partial | shade
+water: moderate
+days_to_harvest: { min: 60, max: 85 }
+
+planting:
+  start: transplant  # seed | transplant | either
+  depth_in: 6
+  notes: Bury the stem up to the first true leaves.
+
+spacing:             # square-foot method
+  plants_per_block: 1
+  block_ft: 2        # 1 plant per 2x2 ft block
+
+npk:
+  feeder: heavy      # light | moderate | heavy
+  stages:
+    - { stage: early growth, focus: nitrogen }
+    - { stage: fruiting, focus: [phosphorus, potassium] }
+
+fertilizers:         # ids from data/fertilizers.yaml
+  - { id: bone-meal,  when: at planting }
+  - { id: blood-meal, when: early growth }
+
+care:
+  support: cage or stake
+  common_problems: [blossom end rot, early blight]
+
+images: []
