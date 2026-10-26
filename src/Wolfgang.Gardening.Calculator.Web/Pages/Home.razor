@@ -1,0 +1,107 @@
+﻿@page "/"
+
+<PageTitle>Raised bed calculator</PageTitle>
+
+<h1>Raised bed calculator</h1>
+
+<p class="note">Stacked-board beds with butt joints. Prices are placeholders, not store prices.</p>
+
+<section class="inputs" aria-label="Bed">
+    <label>
+        Material
+        <select id="treatment" @bind="Form.Treatment">
+            <option value="@Treatment.PressureTreated">2x pressure treated</option>
+            <option value="@Treatment.Untreated">2x untreated</option>
+        </select>
+    </label>
+
+    <label>
+        Board
+        <select id="board" @bind="Form.BoardName">
+            @foreach (var name in BoardProfile.TwoByWallBoards.Select(board => board.Name))
+            {
+                <option value="@name">@name</option>
+            }
+        </select>
+    </label>
+
+    <label>
+        Length
+        <span class="measure">
+            <input id="length" type="number" min="0" step="any" @bind="Form.Length" />
+            <select id="length-unit" aria-label="Length unit" @bind="Form.LengthUnit">
+                <option value="@LengthUnit.Feet">ft</option>
+                <option value="@LengthUnit.Inches">in</option>
+            </select>
+        </span>
+    </label>
+
+    <label>
+        Width
+        <span class="measure">
+            <input id="width" type="number" min="0" step="any" @bind="Form.Width" />
+            <select id="width-unit" aria-label="Width unit" @bind="Form.WidthUnit">
+                <option value="@LengthUnit.Feet">ft</option>
+                <option value="@LengthUnit.Inches">in</option>
+            </select>
+        </span>
+    </label>
+
+    <label>
+        Height
+        <select id="courses" @bind="Form.Courses">
+            @for (var courses = 1; courses <= MaxCourses; courses++)
+            {
+                <option value="@courses">@HeightLabel(courses)</option>
+            }
+        </select>
+    </label>
+
+    <label class="check">
+        <input id="corner-posts" type="checkbox" @bind="Form.CornerPosts" />
+        2x2 corner posts
+    </label>
+
+    <label>
+        Soil
+        <select id="soil-mode" @bind="Form.SoilMode">
+            <option value="@SoilMode.Prebagged">Bagged raised bed soil</option>
+            <option value="@SoilMode.Mix">Mix: equal parts peat moss, compost, vermiculite</option>
+        </select>
+    </label>
+
+    <details>
+        <summary>More options</summary>
+
+        <label>
+            Headroom (in)
+            <input id="headroom" type="number" min="0" step="any" @bind="Form.HeadroomInches" />
+        </label>
+
+        <label>
+            Settling allowance (%)
+            <input id="settling" type="number" min="0" step="any" @bind="Form.SettlingPercent" />
+        </label>
+
+        <label>
+            Saw blade width (in)
+            <input id="kerf" type="number" min="0" step="any" @bind="Form.KerfInches" />
+        </label>
+    </details>
+</section>
+
+<EstimateView Outcome="@BedEstimator.Estimate(Form, MaterialCatalog.Placeholder)" />
+
+@code {
+    private const int MaxCourses = 8;
+
+    private BedForm Form { get; } = new();
+
+
+
+    private string HeightLabel(int courses)
+    {
+        var boards = courses == 1 ? "1 board" : $"{courses} boards";
+        return $"{Display.Inches(courses * Form.Board.WidthInches)} ({boards})";
+    }
+}
