@@ -92,6 +92,56 @@ public class StockPackerTests
 
 
     [Fact]
+    public void Pack_when_mixing_stock_lengths_is_cheapest_buys_a_mix()
+    {
+        // A 12 by 4 ft bed, two courses: four 12 ft walls and four 4 ft ends. Filling only 12 ft boards
+        // leaves a 12 ft board cut 4 + 4 + 4 and an 8 ft board cut 4; two 8 ft boards cut 4 + 4 cost less.
+        var eight = new StockOption(Wall, 96m, 7.20m);
+        var twelve = new StockOption(Wall, 144m, 11.88m);
+        StockOption[] stock = [eight, new StockOption(Wall, 120m, 9.45m), twelve, new StockOption(Wall, 192m, 17.28m)];
+
+        var result = new StockPacker().Pack([Pieces(144m, 4), Pieces(48m, 4)], stock);
+
+        Assert.Equal([new StockPurchase(twelve, 4), new StockPurchase(eight, 2)], result.Purchases);
+        Assert.Equal(61.92m, result.TotalCost);
+        Assert.All(result.Boards, board => Assert.Equal(0m, board.LeftoverInches));
+    }
+
+
+
+    [Fact]
+    public void Pack_when_the_cut_list_is_too_varied_to_search_still_cuts_every_piece()
+    {
+        // 25 different lengths: 2^25 combinations of pieces left to cut is past MaxSearchSteps.
+        var pieces = Enumerable.Range(20, 25).Select(length => Pieces(length, 1)).ToList();
+        var eight = new StockOption(Wall, 96m, 10m);
+
+        var result = new StockPacker().Pack(pieces, [eight]);
+
+        Assert.Equal
+        (
+            pieces.Select(piece => piece.LengthInches).Order(),
+            result.Boards.SelectMany(board => board.Cuts).Order()
+        );
+    }
+
+
+
+    [Fact]
+    public void Pack_when_there_are_too_many_patterns_to_search_still_cuts_every_piece()
+    {
+        // 8 lengths, 4 of each: under MaxSearchSteps combinations of pieces, but too many patterns per combination.
+        var pieces = Enumerable.Range(10, 8).Select(length => Pieces(length, 4)).ToList();
+        var sixteen = new StockOption(Wall, 192m, 20m);
+
+        var result = new StockPacker().Pack(pieces, [sixteen]);
+
+        Assert.Equal(pieces.Sum(piece => piece.Quantity), result.Boards.Sum(board => board.Cuts.Count));
+    }
+
+
+
+    [Fact]
     public void Pack_when_pieces_are_different_kinds_cuts_each_from_its_own_stock()
     {
         var wallStock = new StockOption(Wall, 96m, 10m);
