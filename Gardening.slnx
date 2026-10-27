@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Wolfgang.Gardening.Calculator/Wolfgang.Gardening.Calculator.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Wolfgang.Gardening.Calculator.Tests.Unit/Wolfgang.Gardening.Calculator.Tests.Unit.csproj" />
+  </Folder>
+</Solution>
