@@ -170,14 +170,10 @@ public class BedEstimatorTests
 
 
 
-    [Theory]
-    [InlineData(-1, 0)]
-    [InlineData(10, -0.125)]
-    public void Estimate_when_an_option_is_negative_says_so(decimal settling, decimal kerf)
+    [Fact]
+    public void Estimate_when_settling_is_negative_says_so()
     {
-        var form = new BedForm { SettlingPercent = settling, KerfInches = kerf };
-
-        Assert.Equal("Settling and blade width cannot be negative.", ErrorOf(form));
+        Assert.Equal("Settling cannot be negative.", ErrorOf(new BedForm { SettlingPercent = -1m }));
     }
 
 

@@ -76,11 +76,6 @@ public sealed class BedForm
 
 
 
-    /// <summary>The saw blade width lost on each cut, in inches.</summary>
-    public decimal KerfInches { get; set; }
-
-
-
     /// <summary>
     /// The wall board named by <see cref="BoardName"/>, or a 2x6 when the name is not a known wall board.
     /// </summary>

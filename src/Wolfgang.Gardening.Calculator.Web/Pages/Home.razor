@@ -7,25 +7,27 @@
 <p class="note">Stacked-board beds with butt joints. Prices are placeholders, not store prices.</p>
 
 <section class="inputs" aria-label="Bed">
-    <label>
-        Material
-        <select id="treatment" @bind="Form.Treatment">
-            <option value="@Treatment.PressureTreated">2x pressure treated</option>
-            <option value="@Treatment.Untreated">2x untreated</option>
-        </select>
-    </label>
+    <div class="row">
+        <label>
+            Material
+            <select id="treatment" @bind="Form.Treatment">
+                <option value="@Treatment.PressureTreated">2x pressure treated</option>
+                <option value="@Treatment.Untreated">2x untreated</option>
+            </select>
+        </label>
 
-    <label>
-        Board
-        <select id="board" @bind="Form.BoardName">
-            @foreach (var name in BoardProfile.TwoByWallBoards.Select(board => board.Name))
-            {
-                <option value="@name">@name</option>
-            }
-        </select>
-    </label>
+        <label>
+            Board
+            <select id="board" @bind="Form.BoardName">
+                @foreach (var name in BoardProfile.TwoByWallBoards.Select(board => board.Name))
+                {
+                    <option value="@name">@name</option>
+                }
+            </select>
+        </label>
+    </div>
 
-    <div class="dimensions">
+    <div class="row">
         <label>
             Length
             <span class="measure">
@@ -47,7 +49,9 @@
                 </select>
             </span>
         </label>
+    </div>
 
+    <div class="row">
         <label>
             Height
             <select id="courses" @bind="Form.Courses">
@@ -57,38 +61,36 @@
                 }
             </select>
         </label>
+
+        <label class="check">
+            <input id="corner-posts" type="checkbox" @bind="Form.CornerPosts" />
+            Include 2x2 corner posts
+        </label>
     </div>
 
-    <label class="check">
-        <input id="corner-posts" type="checkbox" @bind="Form.CornerPosts" />
-        2x2 corner posts
-    </label>
+    <div class="row">
+        <label>
+            Soil
+            <select id="soil-mode" @bind="Form.SoilMode">
+                <option value="@SoilMode.Prebagged">Bagged raised bed soil</option>
+                <option value="@SoilMode.Mix">Mix: equal parts peat moss, compost, vermiculite</option>
+            </select>
+        </label>
 
-    <label>
-        Soil
-        <select id="soil-mode" @bind="Form.SoilMode">
-            <option value="@SoilMode.Prebagged">Bagged raised bed soil</option>
-            <option value="@SoilMode.Mix">Mix: equal parts peat moss, compost, vermiculite</option>
-        </select>
-    </label>
+        <label>
+            Fill depth (in)
+            <input id="fill-depth" type="number" min="0" step="any" @bind="Form.FillDepthInches" />
+            <small>How deep the soil is. Starts 1 in below the top of the wall.</small>
+        </label>
+    </div>
 
-    <label>
-        Fill depth (in)
-        <input id="fill-depth" type="number" min="0" step="any" @bind="Form.FillDepthInches" />
-        <small>How deep the soil is. Starts 1 in below the top of the wall.</small>
-    </label>
-
-    <label>
-        Settling allowance (%)
-        <input id="settling" type="number" min="0" step="any" @bind="Form.SettlingPercent" />
-        <small>Extra soil to top up as the bed settles.</small>
-    </label>
-
-    <label>
-        Saw blade width (in)
-        <input id="kerf" type="number" min="0" step="any" @bind="Form.KerfInches" />
-        <small>Wood lost to each saw cut, about 0.125 for a circular saw. 0 ignores it.</small>
-    </label>
+    <div class="row">
+        <label>
+            Settling allowance (%)
+            <input id="settling" type="number" min="0" step="any" @bind="Form.SettlingPercent" />
+            <small>Extra soil to top up as the bed settles.</small>
+        </label>
+    </div>
 </section>
 
 <EstimateView Outcome="@BedEstimator.Estimate(Form, MaterialCatalog.Placeholder)" />

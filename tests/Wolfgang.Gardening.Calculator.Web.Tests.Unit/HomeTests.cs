@@ -117,6 +117,16 @@ public class HomeTests : BunitContext
 
 
     [Fact]
+    public void Render_when_form_is_shown_puts_corner_posts_beside_the_height()
+    {
+        var row = RenderHome().Find("#courses").Closest(".row")!;
+
+        Assert.Equal("Include 2x2 corner posts", row.QuerySelector("#corner-posts")!.ParentElement!.TextContent.Trim());
+    }
+
+
+
+    [Fact]
     public void Change_when_corner_posts_are_off_drops_the_post_row()
     {
         var home = RenderHome();
@@ -159,7 +169,6 @@ public class HomeTests : BunitContext
 
         home.Find("#fill-depth").Change("11");
         home.Find("#settling").Change("0");
-        home.Find("#kerf").Change("0.125");
 
         // 94.5 x 46.5 x 11 in = 27.97 cu ft filled to the top with no settling allowance.
         Assert.Equal("27.97 cu ft to fill the bed.", home.Find("#soil-volume").TextContent);

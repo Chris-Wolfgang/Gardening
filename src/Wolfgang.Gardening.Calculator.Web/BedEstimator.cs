@@ -44,7 +44,7 @@ public static class BedEstimator
             return EstimateOutcome.Failed(tooLong);
         }
 
-        var lumber = new StockPacker(form.KerfInches).Pack(bed.CutList(), catalog.Stock);
+        var lumber = new StockPacker().Pack(bed.CutList(), catalog.Stock);
         var soilCubicFeet = SoilCalculator.VolumeCubicFeet
         (
             bed,
@@ -88,9 +88,9 @@ public static class BedEstimator
             return $"The fill depth must be between 0 and the wall height, {Display.Inches(form.HeightInches)}.";
         }
 
-        if (form.SettlingPercent < 0m || form.KerfInches < 0m)
+        if (form.SettlingPercent < 0m)
         {
-            return "Settling and blade width cannot be negative.";
+            return "Settling cannot be negative.";
         }
 
         return null;
