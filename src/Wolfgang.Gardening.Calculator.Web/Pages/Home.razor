@@ -1,4 +1,4 @@
-﻿@page "/"
+@page "/"
 
 <PageTitle>Raised bed calculator</PageTitle>
 
@@ -25,37 +25,39 @@
         </select>
     </label>
 
-    <label>
-        Length
-        <span class="measure">
-            <input id="length" type="number" min="0" step="any" @bind="Form.Length" />
-            <select id="length-unit" aria-label="Length unit" @bind="Form.LengthUnit">
-                <option value="@LengthUnit.Feet">ft</option>
-                <option value="@LengthUnit.Inches">in</option>
-            </select>
-        </span>
-    </label>
+    <div class="dimensions">
+        <label>
+            Length
+            <span class="measure">
+                <input id="length" type="number" min="0" step="any" @bind="Form.Length" />
+                <select id="length-unit" aria-label="Length unit" @bind="Form.LengthUnit">
+                    <option value="@LengthUnit.Feet">ft</option>
+                    <option value="@LengthUnit.Inches">in</option>
+                </select>
+            </span>
+        </label>
 
-    <label>
-        Width
-        <span class="measure">
-            <input id="width" type="number" min="0" step="any" @bind="Form.Width" />
-            <select id="width-unit" aria-label="Width unit" @bind="Form.WidthUnit">
-                <option value="@LengthUnit.Feet">ft</option>
-                <option value="@LengthUnit.Inches">in</option>
-            </select>
-        </span>
-    </label>
+        <label>
+            Width
+            <span class="measure">
+                <input id="width" type="number" min="0" step="any" @bind="Form.Width" />
+                <select id="width-unit" aria-label="Width unit" @bind="Form.WidthUnit">
+                    <option value="@LengthUnit.Feet">ft</option>
+                    <option value="@LengthUnit.Inches">in</option>
+                </select>
+            </span>
+        </label>
 
-    <label>
-        Height
-        <select id="courses" @bind="Form.Courses">
-            @for (var courses = 1; courses <= MaxCourses; courses++)
-            {
-                <option value="@courses">@HeightLabel(courses)</option>
-            }
-        </select>
-    </label>
+        <label>
+            Height
+            <select id="courses" @bind="Form.Courses">
+                @for (var courses = 1; courses <= MaxCourses; courses++)
+                {
+                    <option value="@courses">@HeightLabel(courses)</option>
+                }
+            </select>
+        </label>
+    </div>
 
     <label class="check">
         <input id="corner-posts" type="checkbox" @bind="Form.CornerPosts" />
@@ -70,24 +72,23 @@
         </select>
     </label>
 
-    <details>
-        <summary>More options</summary>
+    <label>
+        Fill depth (in)
+        <input id="fill-depth" type="number" min="0" step="any" @bind="Form.FillDepthInches" />
+        <small>How deep the soil is. Starts 1 in below the top of the wall.</small>
+    </label>
 
-        <label>
-            Headroom (in)
-            <input id="headroom" type="number" min="0" step="any" @bind="Form.HeadroomInches" />
-        </label>
+    <label>
+        Settling allowance (%)
+        <input id="settling" type="number" min="0" step="any" @bind="Form.SettlingPercent" />
+        <small>Extra soil to top up as the bed settles.</small>
+    </label>
 
-        <label>
-            Settling allowance (%)
-            <input id="settling" type="number" min="0" step="any" @bind="Form.SettlingPercent" />
-        </label>
-
-        <label>
-            Saw blade width (in)
-            <input id="kerf" type="number" min="0" step="any" @bind="Form.KerfInches" />
-        </label>
-    </details>
+    <label>
+        Saw blade width (in)
+        <input id="kerf" type="number" min="0" step="any" @bind="Form.KerfInches" />
+        <small>Wood lost to each saw cut, about 0.125 for a circular saw. 0 ignores it.</small>
+    </label>
 </section>
 
 <EstimateView Outcome="@BedEstimator.Estimate(Form, MaterialCatalog.Placeholder)" />

@@ -148,14 +148,36 @@ public class BedEstimatorTests
 
 
     [Theory]
-    [InlineData(-1, 10, 0)]
-    [InlineData(1, -1, 0)]
-    [InlineData(1, 10, -0.125)]
-    public void Estimate_when_an_option_is_negative_says_so(decimal headroom, decimal settling, decimal kerf)
+    [InlineData(-1)]
+    [InlineData(11.5)]
+    public void Estimate_when_fill_depth_is_outside_the_wall_says_so(decimal fillDepth)
     {
-        var form = new BedForm { HeadroomInches = headroom, SettlingPercent = settling, KerfInches = kerf };
+        Assert.Equal
+        (
+            "The fill depth must be between 0 and the wall height, 11 in.",
+            ErrorOf(new BedForm { FillDepthInches = fillDepth })
+        );
+    }
 
-        Assert.Equal("Headroom, settling and blade width cannot be negative.", ErrorOf(form));
+
+
+    [Fact]
+    public void Estimate_when_fill_depth_is_the_full_wall_height_fills_to_the_top()
+    {
+        // 94.5 x 46.5 x 11 in = 27.97 cu ft, plus 10% settling.
+        Assert.Equal(30.769921875m, EstimateOf(new BedForm { FillDepthInches = 11m }).SoilCubicFeet);
+    }
+
+
+
+    [Theory]
+    [InlineData(-1, 0)]
+    [InlineData(10, -0.125)]
+    public void Estimate_when_an_option_is_negative_says_so(decimal settling, decimal kerf)
+    {
+        var form = new BedForm { SettlingPercent = settling, KerfInches = kerf };
+
+        Assert.Equal("Settling and blade width cannot be negative.", ErrorOf(form));
     }
 
 

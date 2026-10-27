@@ -6,6 +6,10 @@ namespace Wolfgang.Gardening.Calculator.Web;
 /// </summary>
 public sealed class BedForm
 {
+    private decimal? _fillDepthInches;
+
+
+
     /// <summary>Whether the lumber is pressure treated.</summary>
     public Treatment Treatment { get; set; } = Treatment.PressureTreated;
 
@@ -51,8 +55,19 @@ public sealed class BedForm
 
 
 
-    /// <summary>How far below the top of the wall the soil stops, in inches.</summary>
-    public decimal HeadroomInches { get; set; } = 1m;
+    /// <summary>
+    /// How deep the soil is, in inches. Until it is set it follows the wall height, stopping 1 in below the top.
+    /// </summary>
+    public decimal FillDepthInches
+    {
+        get => _fillDepthInches ?? (HeightInches - 1m);
+        set => _fillDepthInches = value;
+    }
+
+
+
+    /// <summary>The wall height for the chosen board and <see cref="Courses"/>, in inches.</summary>
+    public decimal HeightInches => Courses * Board.WidthInches;
 
 
 

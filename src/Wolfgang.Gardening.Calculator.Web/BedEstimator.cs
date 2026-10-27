@@ -48,7 +48,8 @@ public static class BedEstimator
         var soilCubicFeet = SoilCalculator.VolumeCubicFeet
         (
             bed,
-            new SoilOptions(form.HeadroomInches, form.SettlingPercent / 100m)
+            // Max: 11.0m - 11m is a negative zero, which SoilOptions rejects as negative.
+            new SoilOptions(Math.Max(0m, bed.HeightInches - form.FillDepthInches), form.SettlingPercent / 100m)
         );
         IReadOnlyList<SoilIngredient> mix = form.SoilMode == SoilMode.Prebagged
             ? [new SoilIngredient(catalog.PrebaggedSoil, 1m)]
@@ -83,9 +84,14 @@ public static class BedEstimator
             return "Pick a height of at least one board.";
         }
 
-        if (form.HeadroomInches < 0m || form.SettlingPercent < 0m || form.KerfInches < 0m)
+        if (form.FillDepthInches < 0m || form.FillDepthInches > form.HeightInches)
         {
-            return "Headroom, settling and blade width cannot be negative.";
+            return $"The fill depth must be between 0 and the wall height, {Display.Inches(form.HeightInches)}.";
+        }
+
+        if (form.SettlingPercent < 0m || form.KerfInches < 0m)
+        {
+            return "Settling and blade width cannot be negative.";
         }
 
         return null;

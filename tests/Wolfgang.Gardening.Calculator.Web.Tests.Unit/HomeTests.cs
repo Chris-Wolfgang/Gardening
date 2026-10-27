@@ -141,15 +141,27 @@ public class HomeTests : BunitContext
 
 
     [Fact]
+    public void Change_when_courses_change_moves_the_default_fill_depth()
+    {
+        var home = RenderHome();
+
+        home.Find("#courses").Change("3");
+
+        Assert.Equal("15.5", home.Find("#fill-depth").GetAttribute("value"));
+    }
+
+
+
+    [Fact]
     public void Change_when_more_options_are_set_recalculates()
     {
         var home = RenderHome();
 
-        home.Find("#headroom").Change("0");
+        home.Find("#fill-depth").Change("11");
         home.Find("#settling").Change("0");
         home.Find("#kerf").Change("0.125");
 
-        // 94.5 x 46.5 x 11 in = 27.97 cu ft with no headroom and no settling allowance.
+        // 94.5 x 46.5 x 11 in = 27.97 cu ft filled to the top with no settling allowance.
         Assert.Equal("27.97 cu ft to fill the bed.", home.Find("#soil-volume").TextContent);
     }
 }

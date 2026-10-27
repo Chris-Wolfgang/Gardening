@@ -127,7 +127,8 @@ h1 {
     margin-bottom: 1.5rem;
 }
 
-.inputs label {
+.inputs label,
+.dimensions label {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
@@ -138,13 +139,23 @@ h1 {
     align-items: center;
 }
 
-.inputs details {
+.dimensions {
     grid-column: 1 / -1;
 }
 
-.inputs details label {
-    max-width: 14rem;
-    margin-top: 0.5rem;
+.dimensions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.dimensions select,
+.dimensions input {
+    min-width: 0;
+}
+
+.inputs small {
+    opacity: 0.75;
 }
 
 .measure {
