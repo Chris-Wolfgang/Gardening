@@ -12,26 +12,6 @@
         </dl>
     </section>
 
-    <section aria-label="Cut list">
-        <h2>Cut list</h2>
-        <table id="cut-list">
-            <thead>
-                <tr><th>Qty</th><th>Lumber</th><th>Length</th><th>For</th></tr>
-            </thead>
-            <tbody>
-                @foreach (var piece in estimate.CutList)
-                {
-                    <tr>
-                        <td>@piece.Quantity</td>
-                        <td>@Display.Kind(piece.Kind)</td>
-                        <td>@Display.Inches(piece.LengthInches)</td>
-                        <td>@Display.Purpose(piece.Purpose)</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </section>
-
     <section aria-label="Lumber">
         <h2>Lumber to buy</h2>
         <table id="lumber">
@@ -50,8 +30,28 @@
                 }
             </tbody>
         </table>
+    </section>
 
-        <h3>How to cut them</h3>
+    <section aria-label="Cut list">
+        <h2>Cut list</h2>
+        <table id="cut-list">
+            <thead>
+                <tr><th>Qty</th><th>Lumber</th><th>Length</th><th>For</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var piece in estimate.CutList)
+                {
+                    <tr>
+                        <td>@piece.Quantity</td>
+                        <td>@Display.Kind(piece.Kind)</td>
+                        <td>@Display.Inches(piece.LengthInches)</td>
+                        <td>@Display.Purpose(piece.Purpose)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <h3>How to cut the boards</h3>
         <ul id="cut-patterns">
             @foreach (var pattern in estimate.CutPatterns)
             {
