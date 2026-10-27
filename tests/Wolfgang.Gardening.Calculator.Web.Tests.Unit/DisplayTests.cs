@@ -34,6 +34,24 @@ public class DisplayTests
 
 
 
+    [Theory]
+    [InlineData(8, LengthUnit.Feet, "8 ft")]
+    [InlineData(30.5, LengthUnit.Inches, "30.5 in")]
+    public void Measure_when_given_a_length_and_unit_formats_it(decimal value, LengthUnit unit, string expected)
+    {
+        Assert.Equal(expected, Display.Measure(value, unit));
+    }
+
+
+
+    [Fact]
+    public void Measure_when_unit_is_undefined_throws_ArgumentOutOfRangeException()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => Display.Measure(1m, (LengthUnit)99));
+    }
+
+
+
     [Fact]
     public void Feet_when_given_inches_converts_to_feet()
     {

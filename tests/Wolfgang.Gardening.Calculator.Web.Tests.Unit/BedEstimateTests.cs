@@ -13,21 +13,52 @@ public class BedEstimateTests
     [InlineData(1)]
     [InlineData(2)]
     [InlineData(3)]
-    public void Constructor_when_a_reference_argument_is_null_throws_ArgumentNullException(int nullArgument)
+    public void Constructor_when_an_argument_is_null_throws_ArgumentNullException(int nullArgument)
     {
-        var catalog = MaterialCatalog.Placeholder;
-
         Assert.Throws<ArgumentNullException>
         (
             () => new BedEstimate
             (
-                nullArgument == 0 ? null! : Bed,
+                nullArgument == 0 ? null! : [],
                 nullArgument == 1 ? null! : NoLumber,
-                2,
-                nullArgument == 2 ? null! : catalog.Screws,
-                0m,
+                nullArgument == 2 ? null! : MaterialCatalog.Placeholder.Screws,
                 nullArgument == 3 ? null! : []
             )
         );
+    }
+
+
+
+    [Fact]
+    public void CombineCutLists_when_beds_share_pieces_counts_them_together_times_quantity()
+    {
+        // Two of the bed plus one more line of the same bed: the 96 in and 48 in pieces add up.
+        BedLine[] beds = [new BedLine(Bed, 2, 2, 0m), new BedLine(Bed, 1, 2, 0m)];
+
+        var cuts = BedEstimate.CombineCutLists(beds);
+
+        Assert.Equal
+        (
+            [(96m, 12), (48m, 12)],
+            cuts.Select(piece => (piece.LengthInches, piece.Quantity))
+        );
+    }
+
+
+
+    [Fact]
+    public void CombineCutLists_when_beds_is_null_throws_ArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(() => BedEstimate.CombineCutLists(null!));
+    }
+
+
+
+    [Fact]
+    public void Screws_and_SoilCubicFeet_when_a_bed_is_built_twice_count_both()
+    {
+        var estimate = new BedEstimate([new BedLine(Bed, 2, 2, 10m)], NoLumber, MaterialCatalog.Placeholder.Screws, []);
+
+        Assert.Equal((64, 20m), (estimate.Screws, estimate.SoilCubicFeet));
     }
 }

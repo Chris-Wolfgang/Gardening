@@ -146,6 +146,32 @@ h1 {
     min-width: 0;
 }
 
+.beds {
+    margin-bottom: 1.5rem;
+}
+
+.beds input {
+    width: 5rem;
+}
+
+.beds tr.selected {
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.beds button[aria-pressed="true"] {
+    font-weight: 700;
+}
+
+.beds small {
+    display: block;
+    margin-top: 0.5rem;
+    opacity: 0.75;
+}
+
+#add-bed {
+    margin-top: 0.75rem;
+}
+
 .inputs small {
     opacity: 0.75;
 }

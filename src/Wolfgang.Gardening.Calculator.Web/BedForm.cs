@@ -77,6 +77,24 @@ public sealed class BedForm
 
 
     /// <summary>
+    /// Whether the user set <see cref="FillDepthInches"/>, rather than it following the wall height.
+    /// </summary>
+    public bool HasCustomFillDepth => _fillDepthInches.HasValue;
+
+
+
+    /// <summary>
+    /// Copies the form, including a fill depth the user set, so the copy can be edited on its own.
+    /// </summary>
+    /// <returns>The copy.</returns>
+    public BedForm Copy()
+    {
+        return (BedForm)MemberwiseClone();
+    }
+
+
+
+    /// <summary>
     /// The wall board named by <see cref="BoardName"/>, or a 2x6 when the name is not a known wall board.
     /// </summary>
     public BoardProfile Board =>

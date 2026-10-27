@@ -1,15 +1,25 @@
 @if (Outcome.Estimate is { } estimate)
 {
-    <section aria-label="Bed size">
-        <h2>Bed size</h2>
-        <dl class="sizes">
-            <dt>Height</dt>
-            <dd id="height">@Display.InchesAndFeet(estimate.Bed.HeightInches)</dd>
-            <dt>Outside</dt>
-            <dd id="outside">@Display.InchesAndFeet(estimate.Bed.OutsideLengthInches) x @Display.InchesAndFeet(estimate.Bed.OutsideWidthInches)</dd>
-            <dt>Inside</dt>
-            <dd id="inside">@Display.InchesAndFeet(estimate.Bed.InsideLengthInches) x @Display.InchesAndFeet(estimate.Bed.InsideWidthInches)</dd>
-        </dl>
+    <section aria-label="Bed sizes">
+        <h2>Bed sizes</h2>
+        <table id="bed-sizes">
+            <thead>
+                <tr><th>Bed</th><th>How many</th><th>Height</th><th>Outside</th><th>Inside</th></tr>
+            </thead>
+            <tbody>
+                @for (var i = 0; i < estimate.Beds.Count; i++)
+                {
+                    var line = estimate.Beds[i];
+                    <tr id="bed-size-@i">
+                        <td>Bed @(i + 1)</td>
+                        <td>@line.Quantity</td>
+                        <td>@Display.InchesAndFeet(line.Bed.HeightInches)</td>
+                        <td>@Display.InchesAndFeet(line.Bed.OutsideLengthInches) x @Display.InchesAndFeet(line.Bed.OutsideWidthInches)</td>
+                        <td>@Display.InchesAndFeet(line.Bed.InsideLengthInches) x @Display.InchesAndFeet(line.Bed.InsideWidthInches)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </section>
 
     <section aria-label="Lumber">
@@ -67,14 +77,13 @@
     <section aria-label="Screws">
         <h2>Screws</h2>
         <p id="screws">
-            @estimate.Screws screws (@estimate.ScrewsPerBoardEnd per board end x @estimate.Bed.BoardEnds ends):
-            @estimate.ScrewBoxes x @estimate.ScrewProduct.Name, @Display.Money(estimate.ScrewCost)
+            @estimate.Screws screws: @estimate.ScrewBoxes x @estimate.ScrewProduct.Name, @Display.Money(estimate.ScrewCost)
         </p>
     </section>
 
     <section aria-label="Soil">
         <h2>Soil</h2>
-        <p id="soil-volume">@Display.CubicFeet(estimate.SoilCubicFeet) to fill the bed.</p>
+        <p id="soil-volume">@Display.CubicFeet(estimate.SoilCubicFeet) of soil in all.</p>
         <table id="soil">
             <thead>
                 <tr><th>Qty</th><th>Product</th><th>Needed</th><th>Left over</th><th>Cost</th></tr>

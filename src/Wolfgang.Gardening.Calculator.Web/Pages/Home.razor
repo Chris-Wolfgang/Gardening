@@ -1,4 +1,5 @@
 @page "/"
+@inject IJSRuntime JS
 
 <PageTitle>Raised bed calculator</PageTitle>
 
@@ -6,7 +7,41 @@
 
 <p class="note">Stacked-board beds with butt joints. Prices are placeholders, not store prices.</p>
 
+<section class="beds" aria-label="Your beds">
+    <h2>Your beds</h2>
+    <table id="beds">
+        <thead>
+            <tr><th>Bed</th><th>Size</th><th>How many</th><th></th></tr>
+        </thead>
+        <tbody>
+            @for (var i = 0; i < Beds.Count; i++)
+            {
+                var index = i;
+                var order = Beds[index];
+                <tr class="@(index == Selected ? "selected" : null)">
+                    <td>
+                        <button type="button" id="edit-@index" aria-pressed="@(index == Selected ? "true" : "false")" @onclick="() => Selected = index">
+                            Bed @(index + 1)
+                        </button>
+                    </td>
+                    <td>@Summary(order.Form)</td>
+                    <td>
+                        <input id="count-@index" type="number" min="1" step="1" aria-label="How many of bed @(index + 1)" @bind="order.Quantity" />
+                    </td>
+                    <td>
+                        <button type="button" id="remove-@index" disabled="@(Beds.Count == 1)" @onclick="() => Remove(index)">Remove</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <button type="button" id="add-bed" @onclick="AddBed">Add another bed</button>
+    <small>Your beds are saved in this browser, so they are here when you come back.</small>
+</section>
+
 <section class="inputs" aria-label="Bed">
+    <h2 id="editing">Bed @(Selected + 1)</h2>
+
     <div class="row">
         <label>
             Material
@@ -96,12 +131,73 @@
     </div>
 </section>
 
-<EstimateView Outcome="@BedEstimator.Estimate(Form, MaterialCatalog.Placeholder)" />
+<EstimateView Outcome="@BedEstimator.Estimate(Beds, MaterialCatalog.Placeholder)" />
 
 @code {
     private const int MaxCourses = 8;
 
-    private BedForm Form { get; } = new();
+    private string? _saved;
+
+    private List<BedOrder> Beds { get; set; } = [new BedOrder(new BedForm())];
+
+    private int Selected { get; set; }
+
+    private BedForm Form => Beds[Selected].Form;
+
+
+
+    /// <inheritdoc/>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _saved = await JS.InvokeAsync<string?>("localStorage.getItem", SavedBeds.StorageKey);
+            if (SavedBeds.Deserialize(_saved) is { } beds)
+            {
+                Beds = beds;
+                StateHasChanged();
+            }
+
+            return;
+        }
+
+        // Every change re-renders the page, so saving here keeps the stored list current.
+        var json = SavedBeds.Serialize(Beds);
+        if (!string.Equals(json, _saved, StringComparison.Ordinal))
+        {
+            _saved = json;
+            await JS.InvokeVoidAsync("localStorage.setItem", SavedBeds.StorageKey, json);
+        }
+    }
+
+
+
+    private void AddBed()
+    {
+        Beds.Add(new BedOrder(Form.Copy()));
+        Selected = Beds.Count - 1;
+    }
+
+
+
+    private void Remove(int index)
+    {
+        Beds.RemoveAt(index);
+
+        // Keep the same bed selected, or the one before it when the selected bed was removed from the end.
+        if (Selected > index || Selected == Beds.Count)
+        {
+            Selected--;
+        }
+    }
+
+
+
+    private static string Summary(BedForm form)
+    {
+        return $"{Display.Measure(form.Length, form.LengthUnit)} x {Display.Measure(form.Width, form.WidthUnit)}, "
+            + $"{Display.Kind(new LumberKind(form.Board, form.Treatment))}, {Display.Inches(form.HeightInches)} high";
+    }
 
 
 
