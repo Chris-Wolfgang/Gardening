@@ -154,7 +154,16 @@ h1 {
     width: 5rem;
 }
 
-.beds tr.selected {
+.beds tbody tr {
+    cursor: pointer;
+}
+
+.beds tbody tr:hover {
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.beds tr.selected,
+.beds tr.selected:hover {
     background: color-mix(in srgb, var(--accent) 15%, transparent);
 }
 

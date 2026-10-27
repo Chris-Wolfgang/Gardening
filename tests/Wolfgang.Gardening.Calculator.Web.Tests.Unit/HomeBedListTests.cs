@@ -69,6 +69,19 @@ public class HomeBedListTests : BunitContext
 
 
     [Fact]
+    public void Click_when_a_bed_size_in_the_list_is_clicked_loads_that_bed_into_the_form()
+    {
+        var home = ThreeBeds(selected: 2);
+
+        home.Find("#summary-1").Click();
+
+        Assert.Equal(("Bed 2", "10"), (Editing(home), home.Find("#length").GetAttribute("value")));
+        Assert.Contains("selected", home.Find("#bed-1").ClassList);
+    }
+
+
+
+    [Fact]
     public void Change_when_a_count_is_raised_builds_that_many()
     {
         var home = Render<Home>();

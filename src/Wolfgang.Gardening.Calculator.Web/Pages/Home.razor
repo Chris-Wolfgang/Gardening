@@ -18,18 +18,19 @@
             {
                 var index = i;
                 var order = Beds[index];
-                <tr class="@(index == Selected ? "selected" : null)">
+                @* The whole row opens the bed; the button is there for keyboard users. *@
+                <tr id="bed-@index" class="@(index == Selected ? "selected" : null)" title="Click to review and edit this bed" @onclick="() => Selected = index">
                     <td>
                         <button type="button" id="edit-@index" aria-pressed="@(index == Selected ? "true" : "false")" @onclick="() => Selected = index">
                             Bed @(index + 1)
                         </button>
                     </td>
-                    <td>@Summary(order.Form)</td>
+                    <td id="summary-@index">@Summary(order.Form)</td>
                     <td>
                         <input id="count-@index" type="number" min="1" step="1" aria-label="How many of bed @(index + 1)" @bind="order.Quantity" />
                     </td>
                     <td>
-                        <button type="button" id="remove-@index" disabled="@(Beds.Count == 1)" @onclick="() => Remove(index)">Remove</button>
+                        <button type="button" id="remove-@index" disabled="@(Beds.Count == 1)" @onclick="() => Remove(index)" @onclick:stopPropagation="true">Remove</button>
                     </td>
                 </tr>
             }
