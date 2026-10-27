@@ -41,7 +41,7 @@ public static class SoilCalculator
     /// <exception cref="ArgumentException"><paramref name="ingredients"/> is empty.</exception>
     public static IReadOnlyList<SoilRequirement> Split(decimal cubicFeet, IEnumerable<SoilIngredient> ingredients)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(cubicFeet);
+        Guard.ThrowIfNegative(cubicFeet);
         ArgumentNullException.ThrowIfNull(ingredients);
 
         var list = ingredients.ToList();

@@ -19,7 +19,7 @@ public sealed record StockOption
     {
         ArgumentNullException.ThrowIfNull(kind);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(lengthInches);
-        ArgumentOutOfRangeException.ThrowIfNegative(price);
+        Guard.ThrowIfNegative(price);
 
         Kind = kind;
         LengthInches = lengthInches;

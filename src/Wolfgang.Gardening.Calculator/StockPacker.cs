@@ -23,7 +23,7 @@ public sealed class StockPacker
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="kerfInches"/> is negative.</exception>
     public StockPacker(decimal kerfInches = 0m)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(kerfInches);
+        Guard.ThrowIfNegative(kerfInches);
 
         KerfInches = kerfInches;
     }

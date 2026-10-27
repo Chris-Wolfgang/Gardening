@@ -15,8 +15,8 @@ public sealed class SoilOptions
     /// </exception>
     public SoilOptions(decimal headroomInches = 1m, decimal settlingAllowance = 0.10m)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(headroomInches);
-        ArgumentOutOfRangeException.ThrowIfNegative(settlingAllowance);
+        Guard.ThrowIfNegative(headroomInches);
+        Guard.ThrowIfNegative(settlingAllowance);
 
         HeadroomInches = headroomInches;
         SettlingAllowance = settlingAllowance;

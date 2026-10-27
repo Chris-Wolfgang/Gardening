@@ -24,7 +24,7 @@ public sealed record SoilProduct
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(yieldCubicFeet);
-        ArgumentOutOfRangeException.ThrowIfNegative(price);
+        Guard.ThrowIfNegative(price);
 
         Name = name;
         YieldCubicFeet = yieldCubicFeet;

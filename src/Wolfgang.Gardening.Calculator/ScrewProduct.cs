@@ -19,7 +19,7 @@ public sealed record ScrewProduct
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentOutOfRangeException.ThrowIfLessThan(countPerBox, 1);
-        ArgumentOutOfRangeException.ThrowIfNegative(price);
+        Guard.ThrowIfNegative(price);
 
         Name = name;
         CountPerBox = countPerBox;
