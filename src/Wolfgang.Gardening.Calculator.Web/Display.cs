@@ -55,6 +55,25 @@ public static class Display
 
 
 
+    /// <summary>Formats a length as the user entered it, e.g. <c>8 ft</c> or <c>30 in</c>.</summary>
+    /// <param name="value">The length in <paramref name="unit"/>.</param>
+    /// <param name="unit">The unit the length is in.</param>
+    /// <returns>The formatted length.</returns>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="unit"/> is not a defined <see cref="LengthUnit"/>.</exception>
+    public static string Measure(decimal value, LengthUnit unit)
+    {
+        var symbol = unit switch
+        {
+            LengthUnit.Feet => "ft",
+            LengthUnit.Inches => "in",
+            _ => throw new ArgumentOutOfRangeException(nameof(unit), unit, "Unknown length unit."),
+        };
+
+        return $"{Number(value)} {symbol}";
+    }
+
+
+
     /// <summary>Formats a length given in inches as feet, e.g. <c>8 ft</c>.</summary>
     /// <param name="inches">The length in inches.</param>
     /// <returns>The formatted length.</returns>

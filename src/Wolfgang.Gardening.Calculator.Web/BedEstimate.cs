@@ -1,52 +1,48 @@
 namespace Wolfgang.Gardening.Calculator.Web;
 
 /// <summary>
-/// Everything needed to build and fill one bed: sizes, cut list, lumber, screws and soil.
+/// Everything needed to build and fill every bed on the list: sizes, cut list, lumber, screws and soil.
+/// Lumber, screws and soil are bought for all the beds together, so offcuts and part-used boxes and
+/// bags are shared between them.
 /// </summary>
 public sealed class BedEstimate
 {
     /// <summary>
     /// Creates an estimate.
     /// </summary>
-    /// <param name="bed">The bed being built.</param>
+    /// <param name="beds">The beds being built.</param>
     /// <param name="lumber">The boards to buy and how each is cut.</param>
-    /// <param name="screwsPerBoardEnd">Screws driven through each board end.</param>
     /// <param name="screwProduct">The screws bought.</param>
-    /// <param name="soilCubicFeet">The soil needed, in cubic feet.</param>
     /// <param name="soil">The soil products to buy.</param>
-    /// <exception cref="ArgumentNullException">A reference argument is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException">An argument is <see langword="null"/>.</exception>
     public BedEstimate
     (
-        StackedBoardBed bed,
+        IReadOnlyList<BedLine> beds,
         PackingResult lumber,
-        int screwsPerBoardEnd,
         ScrewProduct screwProduct,
-        decimal soilCubicFeet,
         IReadOnlyList<SoilRequirement> soil
     )
     {
-        ArgumentNullException.ThrowIfNull(bed);
+        ArgumentNullException.ThrowIfNull(beds);
         ArgumentNullException.ThrowIfNull(lumber);
         ArgumentNullException.ThrowIfNull(screwProduct);
         ArgumentNullException.ThrowIfNull(soil);
 
-        Bed = bed;
-        CutList = bed.CutList();
+        Beds = beds;
+        CutList = CombineCutLists(beds);
         Lumber = lumber;
-        ScrewsPerBoardEnd = screwsPerBoardEnd;
         ScrewProduct = screwProduct;
-        SoilCubicFeet = soilCubicFeet;
         Soil = soil;
     }
 
 
 
-    /// <summary>The bed being built.</summary>
-    public StackedBoardBed Bed { get; }
+    /// <summary>The beds being built.</summary>
+    public IReadOnlyList<BedLine> Beds { get; }
 
 
 
-    /// <summary>The pieces to cut.</summary>
+    /// <summary>The pieces to cut for all the beds, alike pieces counted together.</summary>
     public IReadOnlyList<CutPiece> CutList { get; }
 
 
@@ -67,13 +63,8 @@ public sealed class BedEstimate
 
 
 
-    /// <summary>Screws driven through each board end.</summary>
-    public int ScrewsPerBoardEnd { get; }
-
-
-
-    /// <summary>All the screws the walls take.</summary>
-    public int Screws => ScrewsPerBoardEnd * Bed.BoardEnds;
+    /// <summary>All the screws the walls of every bed take.</summary>
+    public int Screws => Beds.Sum(line => line.Screws);
 
 
 
@@ -92,8 +83,8 @@ public sealed class BedEstimate
 
 
 
-    /// <summary>The soil needed, in cubic feet.</summary>
-    public decimal SoilCubicFeet { get; }
+    /// <summary>The soil every bed needs, in cubic feet.</summary>
+    public decimal SoilCubicFeet => Beds.Sum(line => line.SoilCubicFeet * line.Quantity);
 
 
 
@@ -109,4 +100,24 @@ public sealed class BedEstimate
 
     /// <summary>The cost of everything on the list.</summary>
     public decimal TotalCost => Lumber.TotalCost + ScrewCost + SoilCost;
+
+
+
+    /// <summary>
+    /// Lists the pieces to cut for every bed, multiplied by how many of each bed, with alike pieces
+    /// counted together.
+    /// </summary>
+    /// <param name="beds">The beds being built.</param>
+    /// <returns>The combined cut list.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="beds"/> is <see langword="null"/>.</exception>
+    public static IReadOnlyList<CutPiece> CombineCutLists(IReadOnlyList<BedLine> beds)
+    {
+        ArgumentNullException.ThrowIfNull(beds);
+
+        return beds
+            .SelectMany(line => line.Bed.CutList().Select(piece => piece with { Quantity = piece.Quantity * line.Quantity }))
+            .GroupBy(piece => (piece.Kind, piece.LengthInches, piece.Purpose))
+            .Select(group => group.First() with { Quantity = group.Sum(piece => piece.Quantity) })
+            .ToList();
+    }
 }

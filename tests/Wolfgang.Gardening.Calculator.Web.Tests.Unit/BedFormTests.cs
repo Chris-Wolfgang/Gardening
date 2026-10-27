@@ -31,6 +31,27 @@ public class BedFormTests
 
 
     [Fact]
+    public void Copy_when_the_copy_is_edited_leaves_the_original_alone()
+    {
+        var original = new BedForm { FillDepthInches = 6m };
+
+        var copy = original.Copy();
+        copy.Length = 12m;
+
+        Assert.Equal((8m, 12m, 6m, true), (original.Length, copy.Length, copy.FillDepthInches, copy.HasCustomFillDepth));
+    }
+
+
+
+    [Fact]
+    public void BedOrder_when_form_is_null_throws_ArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(() => new BedOrder(null!));
+    }
+
+
+
+    [Fact]
     public void Board_when_BoardName_is_not_a_wall_board_returns_a_2x6()
     {
         Assert.Equal(BoardProfile.TwoBySix, new BedForm { BoardName = "2x2" }.Board);

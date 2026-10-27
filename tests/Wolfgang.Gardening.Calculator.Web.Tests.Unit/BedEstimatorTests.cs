@@ -10,7 +10,7 @@ public class BedEstimatorTests
 
     private static BedEstimate EstimateOf(BedForm form)
     {
-        var outcome = BedEstimator.Estimate(form, MaterialCatalog.Placeholder);
+        var outcome = BedEstimator.Estimate([new BedOrder(form)], MaterialCatalog.Placeholder);
         Assert.Null(outcome.Error);
         return outcome.Estimate!;
     }
@@ -19,7 +19,7 @@ public class BedEstimatorTests
 
     private static string ErrorOf(BedForm form, MaterialCatalog? catalog = null)
     {
-        var outcome = BedEstimator.Estimate(form, catalog ?? MaterialCatalog.Placeholder);
+        var outcome = BedEstimator.Estimate([new BedOrder(form)], catalog ?? MaterialCatalog.Placeholder);
         Assert.Null(outcome.Estimate);
         return outcome.Error!;
     }
@@ -46,7 +46,7 @@ public class BedEstimatorTests
     {
         var estimate = EstimateOf(new BedForm());
 
-        Assert.Equal((2, 32, 1, 11.98m), (estimate.ScrewsPerBoardEnd, estimate.Screws, estimate.ScrewBoxes, estimate.ScrewCost));
+        Assert.Equal((2, 32, 1, 11.98m), (estimate.Beds[0].ScrewsPerBoardEnd, estimate.Screws, estimate.ScrewBoxes, estimate.ScrewCost));
     }
 
 
@@ -218,6 +218,6 @@ public class BedEstimatorTests
     [Fact]
     public void Estimate_when_catalog_is_null_throws_ArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => BedEstimator.Estimate(new BedForm(), null!));
+        Assert.Throws<ArgumentNullException>(() => BedEstimator.Estimate([new BedOrder(new BedForm())], null!));
     }
 }

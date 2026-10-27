@@ -7,72 +7,103 @@ namespace Wolfgang.Gardening.Calculator.Web;
 public static class BedEstimator
 {
     /// <summary>
-    /// Calculates the bed, cut list, lumber, screws and soil for <paramref name="form"/>.
+    /// Calculates the beds, cut list, lumber, screws and soil for every bed in <paramref name="orders"/>,
+    /// buying lumber, screws and soil for all of them together.
     /// </summary>
-    /// <param name="form">What the user entered.</param>
+    /// <param name="orders">The bed designs and how many of each.</param>
     /// <param name="catalog">The products to buy from.</param>
     /// <returns>The estimate, or a message saying what to fix.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="form"/> or <paramref name="catalog"/> is <see langword="null"/>.</exception>
-    public static EstimateOutcome Estimate(BedForm form, MaterialCatalog catalog)
+    /// <exception cref="ArgumentNullException"><paramref name="orders"/> or <paramref name="catalog"/> is <see langword="null"/>.</exception>
+    public static EstimateOutcome Estimate(IReadOnlyList<BedOrder> orders, MaterialCatalog catalog)
     {
-        ArgumentNullException.ThrowIfNull(form);
+        ArgumentNullException.ThrowIfNull(orders);
         ArgumentNullException.ThrowIfNull(catalog);
 
-        var board = form.Board;
-        var lengthInches = Length.ToInches(form.Length, form.LengthUnit);
-        var widthInches = Length.ToInches(form.Width, form.WidthUnit);
-
-        var invalid = FindInvalidInput(form, lengthInches, widthInches);
-        if (invalid is not null)
+        if (orders.Count == 0)
         {
-            return EstimateOutcome.Failed(invalid);
+            return EstimateOutcome.Failed("Add a bed.");
         }
 
-        var bed = new StackedBoardBed
-        (
-            board,
-            form.Treatment,
-            lengthInches,
-            widthInches,
-            form.Courses,
-            form.CornerBracing == CornerBracing.TwoByTwoPosts ? BoardProfile.TwoByTwo : null
-        );
+        var lines = new List<BedLine>();
+        var soil = new List<SoilRequirement>();
+        for (var index = 0; index < orders.Count; index++)
+        {
+            var form = orders[index].Form;
+            var invalid = FindInvalidInput(orders[index]);
+            if (invalid is not null)
+            {
+                // Say which bed is wrong only when there is more than one.
+                return EstimateOutcome.Failed(orders.Count == 1 ? invalid : $"Bed {index + 1}: {invalid}");
+            }
 
-        var tooLong = FindPieceLongerThanStock(bed.CutList(), catalog.Stock);
+            var line = Line(form, orders[index].Quantity);
+            lines.Add(line);
+
+            IReadOnlyList<SoilIngredient> mix = form.SoilMode == SoilMode.Prebagged
+                ? [new SoilIngredient(catalog.PrebaggedSoil, 1m)]
+                : catalog.MixIngredients;
+            soil.AddRange(SoilCalculator.Split(line.SoilCubicFeet * line.Quantity, mix));
+        }
+
+        var cutList = BedEstimate.CombineCutLists(lines);
+        var tooLong = FindPieceLongerThanStock(cutList, catalog.Stock);
         if (tooLong is not null)
         {
             return EstimateOutcome.Failed(tooLong);
         }
 
-        var lumber = new StockPacker().Pack(bed.CutList(), catalog.Stock);
-        var soilCubicFeet = SoilCalculator.VolumeCubicFeet
-        (
-            bed,
-            new SoilOptions(bed.HeightInches - form.FillDepthInches, form.SettlingPercent / 100m)
-        );
-        IReadOnlyList<SoilIngredient> mix = form.SoilMode == SoilMode.Prebagged
-            ? [new SoilIngredient(catalog.PrebaggedSoil, 1m)]
-            : catalog.MixIngredients;
-
         return EstimateOutcome.Succeeded
         (
             new BedEstimate
             (
-                bed,
-                lumber,
-                new FastenerRule().ScrewsPerBoardEnd(board),
+                lines,
+                new StockPacker().Pack(cutList, catalog.Stock),
                 catalog.Screws,
-                soilCubicFeet,
-                SoilCalculator.Split(soilCubicFeet, mix)
+                soil
+                    .GroupBy(requirement => requirement.Product)
+                    .Select(group => new SoilRequirement(group.Key, group.Sum(requirement => requirement.CubicFeet)))
+                    .ToList()
             )
         );
     }
 
 
 
-    private static string? FindInvalidInput(BedForm form, decimal lengthInches, decimal widthInches)
+    private static BedLine Line(BedForm form, int quantity)
     {
+        var bed = new StackedBoardBed
+        (
+            form.Board,
+            form.Treatment,
+            Length.ToInches(form.Length, form.LengthUnit),
+            Length.ToInches(form.Width, form.WidthUnit),
+            form.Courses,
+            form.CornerBracing == CornerBracing.TwoByTwoPosts ? BoardProfile.TwoByTwo : null
+        );
+
+        var soilCubicFeet = SoilCalculator.VolumeCubicFeet
+        (
+            bed,
+            new SoilOptions(bed.HeightInches - form.FillDepthInches, form.SettlingPercent / 100m)
+        );
+
+        return new BedLine(bed, quantity, new FastenerRule().ScrewsPerBoardEnd(form.Board), soilCubicFeet);
+    }
+
+
+
+    private static string? FindInvalidInput(BedOrder order)
+    {
+        var form = order.Form;
+        var lengthInches = Length.ToInches(form.Length, form.LengthUnit);
+        var widthInches = Length.ToInches(form.Width, form.WidthUnit);
         var thickness = form.Board.ThicknessInches;
+
+        if (order.Quantity < 1)
+        {
+            return "Build at least 1 of each bed.";
+        }
+
         if (lengthInches <= thickness || widthInches <= thickness)
         {
             return $"The length and width must each be more than {Display.Inches(thickness)}, the board thickness.";
