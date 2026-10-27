@@ -1,0 +1,112 @@
+@if (Outcome.Estimate is { } estimate)
+{
+    <section aria-label="Bed size">
+        <h2>Bed size</h2>
+        <dl class="sizes">
+            <dt>Height</dt>
+            <dd id="height">@Display.InchesAndFeet(estimate.Bed.HeightInches)</dd>
+            <dt>Outside</dt>
+            <dd id="outside">@Display.InchesAndFeet(estimate.Bed.OutsideLengthInches) x @Display.InchesAndFeet(estimate.Bed.OutsideWidthInches)</dd>
+            <dt>Inside</dt>
+            <dd id="inside">@Display.InchesAndFeet(estimate.Bed.InsideLengthInches) x @Display.InchesAndFeet(estimate.Bed.InsideWidthInches)</dd>
+        </dl>
+    </section>
+
+    <section aria-label="Lumber">
+        <h2>Lumber to buy</h2>
+        <table id="lumber">
+            <thead>
+                <tr><th>Qty</th><th>Board</th><th>Each</th><th>Cost</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var purchase in estimate.Lumber.Purchases)
+                {
+                    <tr>
+                        <td>@purchase.Quantity</td>
+                        <td>@Display.Kind(purchase.Stock.Kind), @Display.Feet(purchase.Stock.LengthInches)</td>
+                        <td>@Display.Money(purchase.Stock.Price)</td>
+                        <td>@Display.Money(purchase.Cost)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </section>
+
+    <section aria-label="Cut list">
+        <h2>Cut list</h2>
+        <table id="cut-list">
+            <thead>
+                <tr><th>Qty</th><th>Lumber</th><th>Length</th><th>For</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var piece in estimate.CutList)
+                {
+                    <tr>
+                        <td>@piece.Quantity</td>
+                        <td>@Display.Kind(piece.Kind)</td>
+                        <td>@Display.Inches(piece.LengthInches)</td>
+                        <td>@Display.Purpose(piece.Purpose)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <h3>How to cut the boards</h3>
+        <ul id="cut-patterns">
+            @foreach (var pattern in estimate.CutPatterns)
+            {
+                <li>
+                    @pattern.Count x @Display.Kind(pattern.Stock.Kind), @Display.Feet(pattern.Stock.LengthInches):
+                    cut @string.Join(" + ", pattern.Cuts.Select(Display.Inches)),
+                    @Display.Inches(pattern.LeftoverInches) left over
+                </li>
+            }
+        </ul>
+    </section>
+
+    <section aria-label="Screws">
+        <h2>Screws</h2>
+        <p id="screws">
+            @estimate.Screws screws (@estimate.ScrewsPerBoardEnd per board end x @estimate.Bed.BoardEnds ends):
+            @estimate.ScrewBoxes x @estimate.ScrewProduct.Name, @Display.Money(estimate.ScrewCost)
+        </p>
+    </section>
+
+    <section aria-label="Soil">
+        <h2>Soil</h2>
+        <p id="soil-volume">@Display.CubicFeet(estimate.SoilCubicFeet) to fill the bed.</p>
+        <table id="soil">
+            <thead>
+                <tr><th>Qty</th><th>Product</th><th>Needed</th><th>Left over</th><th>Cost</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var requirement in estimate.Soil)
+                {
+                    <tr>
+                        <td>@requirement.Packages</td>
+                        <td>@requirement.Product.Name</td>
+                        <td>@Display.CubicFeet(requirement.CubicFeet)</td>
+                        <td>@Display.CubicFeet(requirement.LeftoverCubicFeet)</td>
+                        <td>@Display.Money(requirement.Cost)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </section>
+
+    <section aria-label="Total">
+        <h2>Total</h2>
+        <p id="total" class="total">@Display.Money(estimate.TotalCost)</p>
+    </section>
+}
+else
+{
+    <p id="error" class="error" role="alert">@Outcome.Error</p>
+}
+
+@code {
+    /// <summary>The estimate to show, or the message saying what to fix.</summary>
+    [Parameter]
+    [EditorRequired]
+    public EstimateOutcome Outcome { get; set; } = default!;
+}
