@@ -4,11 +4,11 @@
         <h2>Bed size</h2>
         <dl class="sizes">
             <dt>Height</dt>
-            <dd id="height">@Display.Inches(estimate.Bed.HeightInches)</dd>
+            <dd id="height">@Display.InchesAndFeet(estimate.Bed.HeightInches)</dd>
             <dt>Outside</dt>
-            <dd id="outside">@Display.Inches(estimate.Bed.OutsideLengthInches) x @Display.Inches(estimate.Bed.OutsideWidthInches)</dd>
+            <dd id="outside">@Display.InchesAndFeet(estimate.Bed.OutsideLengthInches) x @Display.InchesAndFeet(estimate.Bed.OutsideWidthInches)</dd>
             <dt>Inside</dt>
-            <dd id="inside">@Display.Inches(estimate.Bed.InsideLengthInches) x @Display.Inches(estimate.Bed.InsideWidthInches)</dd>
+            <dd id="inside">@Display.InchesAndFeet(estimate.Bed.InsideLengthInches) x @Display.InchesAndFeet(estimate.Bed.InsideWidthInches)</dd>
         </dl>
     </section>
 

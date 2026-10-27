@@ -23,7 +23,7 @@ public class HomeTests : BunitContext
 
         Assert.Equal
         (
-            ("11 in", "97.5 in x 49.5 in", "94.5 in x 46.5 in"),
+            ("11 in", "97.5 in (8 ft 1.5 in) x 49.5 in (4 ft 1.5 in)", "94.5 in (7 ft 10.5 in) x 46.5 in (3 ft 10.5 in)"),
             (home.Find("#height").TextContent, home.Find("#outside").TextContent, home.Find("#inside").TextContent)
         );
     }
@@ -60,7 +60,7 @@ public class HomeTests : BunitContext
 
         home.Find("#board").Change("2x8");
 
-        Assert.Equal("14.5 in", home.Find("#height").TextContent);
+        Assert.Equal("14.5 in (1 ft 2.5 in)", home.Find("#height").TextContent);
     }
 
 
@@ -111,7 +111,7 @@ public class HomeTests : BunitContext
 
         home.Find("#courses").Change("3");
 
-        Assert.Equal("16.5 in", home.Find("#height").TextContent);
+        Assert.Equal("16.5 in (1 ft 4.5 in)", home.Find("#height").TextContent);
     }
 
 

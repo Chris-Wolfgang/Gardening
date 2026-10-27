@@ -32,6 +32,29 @@ public static class Display
 
 
 
+    /// <summary>
+    /// Formats a length in inches and, from a foot up, in feet and inches too, e.g. <c>97.5 in (8 ft 1.5 in)</c>,
+    /// <c>96 in (8 ft)</c> or <c>11 in</c>.
+    /// </summary>
+    /// <param name="inches">The length in inches.</param>
+    /// <returns>The formatted length.</returns>
+    public static string InchesAndFeet(decimal inches)
+    {
+        // Round first so 23.999 in shows as 2 ft, not 1 ft 12 in.
+        var rounded = Math.Round(inches, 2);
+        var feet = Math.Floor(rounded / Length.InchesPerFoot);
+        if (feet < 1m)
+        {
+            return Inches(rounded);
+        }
+
+        var rest = rounded - (feet * Length.InchesPerFoot);
+        var feetAndInches = rest == 0m ? $"{Number(feet)} ft" : $"{Number(feet)} ft {Inches(rest)}";
+        return $"{Inches(rounded)} ({feetAndInches})";
+    }
+
+
+
     /// <summary>Formats a length given in inches as feet, e.g. <c>8 ft</c>.</summary>
     /// <param name="inches">The length in inches.</param>
     /// <returns>The formatted length.</returns>

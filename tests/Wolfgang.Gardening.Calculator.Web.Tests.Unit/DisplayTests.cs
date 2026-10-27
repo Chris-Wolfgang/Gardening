@@ -21,6 +21,19 @@ public class DisplayTests
 
 
 
+    [Theory]
+    [InlineData(97.5, "97.5 in (8 ft 1.5 in)")]
+    [InlineData(96, "96 in (8 ft)")]
+    [InlineData(12, "12 in (1 ft)")]
+    [InlineData(11, "11 in")]
+    [InlineData(23.999, "24 in (2 ft)")]
+    public void InchesAndFeet_when_given_a_length_adds_feet_and_inches_from_a_foot_up(decimal inches, string expected)
+    {
+        Assert.Equal(expected, Display.InchesAndFeet(inches));
+    }
+
+
+
     [Fact]
     public void Feet_when_given_inches_converts_to_feet()
     {
