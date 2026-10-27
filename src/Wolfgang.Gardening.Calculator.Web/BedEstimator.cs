@@ -48,8 +48,7 @@ public static class BedEstimator
         var soilCubicFeet = SoilCalculator.VolumeCubicFeet
         (
             bed,
-            // Max: 11.0m - 11m is a negative zero, which SoilOptions rejects as negative.
-            new SoilOptions(Math.Max(0m, bed.HeightInches - form.FillDepthInches), form.SettlingPercent / 100m)
+            new SoilOptions(bed.HeightInches - form.FillDepthInches, form.SettlingPercent / 100m)
         );
         IReadOnlyList<SoilIngredient> mix = form.SoilMode == SoilMode.Prebagged
             ? [new SoilIngredient(catalog.PrebaggedSoil, 1m)]
