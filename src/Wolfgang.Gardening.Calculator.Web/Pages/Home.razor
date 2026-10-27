@@ -62,9 +62,12 @@
             </select>
         </label>
 
-        <label class="check">
-            <input id="corner-posts" type="checkbox" @bind="Form.CornerPosts" />
-            Include 2x2 corner posts
+        <label>
+            Corner bracing
+            <select id="corner-bracing" @bind="Form.CornerBracing">
+                <option value="@CornerBracing.None">None</option>
+                <option value="@CornerBracing.TwoByTwoPosts">2x2 corner posts</option>
+            </select>
         </label>
     </div>
 

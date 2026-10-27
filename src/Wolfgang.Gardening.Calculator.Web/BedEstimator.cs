@@ -35,7 +35,7 @@ public static class BedEstimator
             lengthInches,
             widthInches,
             form.Courses,
-            form.CornerPosts ? BoardProfile.TwoByTwo : null
+            form.CornerBracing == CornerBracing.TwoByTwoPosts ? BoardProfile.TwoByTwo : null
         );
 
         var tooLong = FindPieceLongerThanStock(bed.CutList(), catalog.Stock);

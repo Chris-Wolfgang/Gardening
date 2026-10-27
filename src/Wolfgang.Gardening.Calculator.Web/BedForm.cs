@@ -45,8 +45,8 @@ public sealed class BedForm
 
 
 
-    /// <summary>Whether to add 2x2 corner posts.</summary>
-    public bool CornerPosts { get; set; } = true;
+    /// <summary>What holds the corners of the bed together.</summary>
+    public CornerBracing CornerBracing { get; set; } = CornerBracing.TwoByTwoPosts;
 
 
 

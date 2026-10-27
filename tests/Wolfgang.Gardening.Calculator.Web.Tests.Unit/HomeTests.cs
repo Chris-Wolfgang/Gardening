@@ -117,21 +117,22 @@ public class HomeTests : BunitContext
 
 
     [Fact]
-    public void Render_when_form_is_shown_puts_corner_posts_beside_the_height()
+    public void Render_when_form_is_shown_offers_corner_bracing_beside_the_height()
     {
-        var row = RenderHome().Find("#courses").Closest(".row")!;
+        var bracing = RenderHome().Find("#courses").Closest(".row")!.QuerySelector("#corner-bracing")!;
 
-        Assert.Equal("Include 2x2 corner posts", row.QuerySelector("#corner-posts")!.ParentElement!.TextContent.Trim());
+        Assert.StartsWith("Corner bracing", bracing.ParentElement!.TextContent.Trim(), StringComparison.Ordinal);
+        Assert.Equal(["None", "2x2 corner posts"], bracing.Children.Select(option => option.TextContent));
     }
 
 
 
     [Fact]
-    public void Change_when_corner_posts_are_off_drops_the_post_row()
+    public void Change_when_corner_bracing_is_None_drops_the_post_row()
     {
         var home = RenderHome();
 
-        home.Find("#corner-posts").Change(false);
+        home.Find("#corner-bracing").Change(nameof(CornerBracing.None));
 
         Assert.Equal(2, home.FindAll("#cut-list tbody tr").Count);
     }

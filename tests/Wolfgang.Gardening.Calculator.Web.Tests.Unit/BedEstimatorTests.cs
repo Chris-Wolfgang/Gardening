@@ -99,9 +99,9 @@ public class BedEstimatorTests
 
 
     [Fact]
-    public void Estimate_when_corner_posts_are_off_cuts_no_posts()
+    public void Estimate_when_corner_bracing_is_None_cuts_no_posts()
     {
-        var cuts = EstimateOf(new BedForm { CornerPosts = false }).CutList;
+        var cuts = EstimateOf(new BedForm { CornerBracing = CornerBracing.None }).CutList;
 
         Assert.DoesNotContain(cuts, piece => piece.Purpose == PiecePurpose.CornerPost);
     }
