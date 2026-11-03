@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Wolfgang.Gardening.Calculator</RootNamespace>
+    <Description>Raised-bed materials calculator: cut lists, lumber purchases, fasteners and soil.</Description>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+</Project>
