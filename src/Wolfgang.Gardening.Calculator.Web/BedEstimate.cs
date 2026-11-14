@@ -31,6 +31,10 @@ public sealed class BedEstimate
         Beds = beds;
         CutList = CombineCutLists(beds);
         Lumber = lumber;
+        CutPatterns = lumber.Boards
+            .GroupBy(board => (board.Stock, Cuts: string.Join(',', board.Cuts)))
+            .Select(group => new CutPattern(group.Key.Stock, group.First().Cuts, group.First().LeftoverInches, group.Count()))
+            .ToList();
         ScrewProduct = screwProduct;
         Soil = soil;
     }
@@ -55,11 +59,7 @@ public sealed class BedEstimate
     /// <summary>
     /// The boards grouped by how they are cut, so identical boards are listed once with a count.
     /// </summary>
-    public IReadOnlyList<CutPattern> CutPatterns =>
-        Lumber.Boards
-            .GroupBy(board => (board.Stock, Cuts: string.Join(',', board.Cuts)))
-            .Select(group => new CutPattern(group.Key.Stock, group.First().Cuts, group.First().LeftoverInches, group.Count()))
-            .ToList();
+    public IReadOnlyList<CutPattern> CutPatterns { get; }
 
 
 
