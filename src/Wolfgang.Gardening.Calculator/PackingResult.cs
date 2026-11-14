@@ -15,6 +15,10 @@ public sealed class PackingResult
         ArgumentNullException.ThrowIfNull(boards);
 
         Boards = boards;
+        Purchases = boards
+            .GroupBy(board => board.Stock)
+            .Select(group => new StockPurchase(group.Key, group.Count()))
+            .ToList();
     }
 
 
@@ -30,9 +34,5 @@ public sealed class PackingResult
 
 
     /// <summary>The boards grouped into a purchase list, one line per stock option.</summary>
-    public IReadOnlyList<StockPurchase> Purchases =>
-        Boards
-            .GroupBy(board => board.Stock)
-            .Select(group => new StockPurchase(group.Key, group.Count()))
-            .ToList();
+    public IReadOnlyList<StockPurchase> Purchases { get; }
 }
