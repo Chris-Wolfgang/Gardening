@@ -45,9 +45,16 @@ public class BoardProfileTests
 
 
 
+    public static TheoryData<decimal, decimal> NonPositiveDimensions { get; } = new()
+    {
+        { 0m, 3.5m },
+        { 1.5m, 0m },
+    };
+
+
+
     [Theory]
-    [InlineData(0, 3.5)]
-    [InlineData(1.5, 0)]
+    [MemberData(nameof(NonPositiveDimensions))]
     public void Constructor_when_a_dimension_is_not_positive_throws_ArgumentOutOfRangeException(decimal thickness, decimal width)
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => new BoardProfile("2x4", thickness, width));

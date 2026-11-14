@@ -99,10 +99,17 @@ public class StackedBoardBedTests
 
 
 
+    public static TheoryData<decimal, decimal, int> OutOfRangeSizes { get; } = new()
+    {
+        { 1.5m, 48m, 1 },
+        { 96m, 1.5m, 1 },
+        { 96m, 48m, 0 },
+    };
+
+
+
     [Theory]
-    [InlineData(1.5, 48, 1)]
-    [InlineData(96, 1.5, 1)]
-    [InlineData(96, 48, 0)]
+    [MemberData(nameof(OutOfRangeSizes))]
     public void Constructor_when_size_is_out_of_range_throws_ArgumentOutOfRangeException(decimal length, decimal width, int courses)
     {
         Assert.Throws<ArgumentOutOfRangeException>
