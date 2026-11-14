@@ -2,10 +2,17 @@ namespace Wolfgang.Gardening.Calculator.Tests.Unit;
 
 public class LengthTests
 {
+    public static TheoryData<decimal, LengthUnit, decimal> ValidLengths { get; } = new()
+    {
+        { 8m, LengthUnit.Feet, 96m },
+        { 4.5m, LengthUnit.Feet, 54m },
+        { 30m, LengthUnit.Inches, 30m },
+    };
+
+
+
     [Theory]
-    [InlineData(8, LengthUnit.Feet, 96)]
-    [InlineData(4.5, LengthUnit.Feet, 54)]
-    [InlineData(30, LengthUnit.Inches, 30)]
+    [MemberData(nameof(ValidLengths))]
     public void ToInches_when_unit_is_valid_returns_inches(decimal value, LengthUnit unit, decimal expected)
     {
         Assert.Equal(expected, Length.ToInches(value, unit));

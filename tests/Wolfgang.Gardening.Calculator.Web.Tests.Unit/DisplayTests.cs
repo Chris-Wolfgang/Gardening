@@ -10,10 +10,17 @@ public class DisplayTests
 
 
 
+    public static TheoryData<decimal, string> InchesCases { get; } = new()
+    {
+        { 97.5m, "97.5 in" },
+        { 27.97265625m, "27.97 in" },
+        { 11m, "11 in" },
+    };
+
+
+
     [Theory]
-    [InlineData(97.5, "97.5 in")]
-    [InlineData(27.97265625, "27.97 in")]
-    [InlineData(11, "11 in")]
+    [MemberData(nameof(InchesCases))]
     public void Inches_when_given_a_length_rounds_to_two_places(decimal inches, string expected)
     {
         Assert.Equal(expected, Display.Inches(inches));
@@ -21,12 +28,19 @@ public class DisplayTests
 
 
 
+    public static TheoryData<decimal, string> InchesAndFeetCases { get; } = new()
+    {
+        { 97.5m, "97.5 in (8 ft 1.5 in)" },
+        { 96m, "96 in (8 ft)" },
+        { 12m, "12 in (1 ft)" },
+        { 11m, "11 in" },
+        { 23.999m, "24 in (2 ft)" },
+    };
+
+
+
     [Theory]
-    [InlineData(97.5, "97.5 in (8 ft 1.5 in)")]
-    [InlineData(96, "96 in (8 ft)")]
-    [InlineData(12, "12 in (1 ft)")]
-    [InlineData(11, "11 in")]
-    [InlineData(23.999, "24 in (2 ft)")]
+    [MemberData(nameof(InchesAndFeetCases))]
     public void InchesAndFeet_when_given_a_length_adds_feet_and_inches_from_a_foot_up(decimal inches, string expected)
     {
         Assert.Equal(expected, Display.InchesAndFeet(inches));
@@ -34,9 +48,16 @@ public class DisplayTests
 
 
 
+    public static TheoryData<decimal, LengthUnit, string> MeasureCases { get; } = new()
+    {
+        { 8m, LengthUnit.Feet, "8 ft" },
+        { 30.5m, LengthUnit.Inches, "30.5 in" },
+    };
+
+
+
     [Theory]
-    [InlineData(8, LengthUnit.Feet, "8 ft")]
-    [InlineData(30.5, LengthUnit.Inches, "30.5 in")]
+    [MemberData(nameof(MeasureCases))]
     public void Measure_when_given_a_length_and_unit_formats_it(decimal value, LengthUnit unit, string expected)
     {
         Assert.Equal(expected, Display.Measure(value, unit));

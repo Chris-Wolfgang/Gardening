@@ -1,5 +1,5 @@
 @page "/"
-@inject IJSRuntime JS
+@inject IJSRuntime Js
 
 <PageTitle>Raised bed calculator</PageTitle>
 
@@ -152,7 +152,7 @@
     {
         if (firstRender)
         {
-            _saved = await JS.InvokeAsync<string?>("localStorage.getItem", SavedBeds.StorageKey);
+            _saved = await Js.InvokeAsync<string?>("localStorage.getItem", SavedBeds.StorageKey);
             if (SavedBeds.Deserialize(_saved) is { } beds)
             {
                 Beds = beds;
@@ -167,7 +167,7 @@
         if (!string.Equals(json, _saved, StringComparison.Ordinal))
         {
             _saved = json;
-            await JS.InvokeVoidAsync("localStorage.setItem", SavedBeds.StorageKey, json);
+            await Js.InvokeVoidAsync("localStorage.setItem", SavedBeds.StorageKey, json);
         }
     }
 

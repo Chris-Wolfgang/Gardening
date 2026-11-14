@@ -51,9 +51,16 @@ public class FastenerRuleTests
 
 
 
+    public static TheoryData<int, decimal> OutOfRangeRules { get; } = new()
+    {
+        { 0, 3.5m },
+        { 2, 0m },
+    };
+
+
+
     [Theory]
-    [InlineData(0, 3.5)]
-    [InlineData(2, 0)]
+    [MemberData(nameof(OutOfRangeRules))]
     public void Constructor_when_value_is_out_of_range_throws_ArgumentOutOfRangeException(int minimum, decimal spacing)
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => new FastenerRule(minimum, spacing));

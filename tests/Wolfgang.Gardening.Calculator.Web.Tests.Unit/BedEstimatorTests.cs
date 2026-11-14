@@ -147,9 +147,16 @@ public class BedEstimatorTests
 
 
 
+    public static TheoryData<decimal> FillDepthsOutsideTheWall { get; } = new()
+    {
+        -1m,
+        11.5m,
+    };
+
+
+
     [Theory]
-    [InlineData(-1)]
-    [InlineData(11.5)]
+    [MemberData(nameof(FillDepthsOutsideTheWall))]
     public void Estimate_when_fill_depth_is_outside_the_wall_says_so(decimal fillDepth)
     {
         Assert.Equal

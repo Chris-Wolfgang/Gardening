@@ -117,9 +117,16 @@ public class SoilCalculatorTests
 
 
 
+    public static TheoryData<decimal, decimal> NegativeSoilOptions { get; } = new()
+    {
+        { -1m, 0.1m },
+        { 1m, -0.1m },
+    };
+
+
+
     [Theory]
-    [InlineData(-1, 0.1)]
-    [InlineData(1, -0.1)]
+    [MemberData(nameof(NegativeSoilOptions))]
     public void SoilOptions_when_value_is_negative_throws_ArgumentOutOfRangeException(decimal headroom, decimal settling)
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => new SoilOptions(headroom, settling));
