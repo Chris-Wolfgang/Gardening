@@ -389,7 +389,16 @@ public sealed class StockPacker
             .ThenBy(option => option.LengthInches)
             .First();
 
-        return new PackedBoard(stock, cuts, stock.LengthInches - used);
+        return new PackedBoard(stock, cuts, Leftover(stock.LengthInches - used));
+    }
+
+
+
+    // What is left after the last piece: cutting it off the offcut takes one more kerf, unless the piece
+    // already ends at (or within a kerf of) the end of the board.
+    private decimal Leftover(decimal afterCuts)
+    {
+        return Math.Max(0m, afterCuts - KerfInches);
     }
 
 
