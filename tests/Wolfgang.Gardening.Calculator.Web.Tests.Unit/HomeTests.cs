@@ -56,6 +56,14 @@ public class HomeTests : BunitContext
 
 
     [Fact]
+    public void Render_when_cut_patterns_are_shown_says_they_allow_nothing_for_the_saw_blade()
+    {
+        Assert.Contains("allow nothing for the saw blade", RenderHome().Find("#kerf-note").TextContent, StringComparison.Ordinal);
+    }
+
+
+
+    [Fact]
     public void Render_when_height_options_are_shown_labels_each_with_inches_and_boards()
     {
         var options = RenderHome().FindAll("#courses option");
