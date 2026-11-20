@@ -1,5 +1,6 @@
 @page "/"
 @inject IJSRuntime Js
+@using System.Globalization
 
 <PageTitle>Raised bed calculator</PageTitle>
 
@@ -27,7 +28,7 @@
                     </td>
                     <td id="summary-@index">@Summary(order.Form)</td>
                     <td>
-                        <input id="count-@index" type="number" min="1" step="1" aria-label="How many of bed @(index + 1)" @bind="order.Quantity" />
+                        <input id="count-@index" type="number" min="1" max="@BedEstimator.MaxQuantity" step="1" aria-label="How many of bed @(index + 1)" @bind="order.Quantity" />
                     </td>
                     <td>
                         <button type="button" id="remove-@index" disabled="@(Beds.Count == 1)" @onclick="() => Remove(index)" @onclick:stopPropagation="true">Remove</button>
@@ -67,7 +68,7 @@
         <label>
             Length
             <span class="measure">
-                <input id="length" type="number" min="0" step="any" @bind="Form.Length" />
+                <input id="length" type="number" min="0" max="@BedEstimator.MaxSide(Form.LengthUnit).ToString(CultureInfo.InvariantCulture)" step="any" @bind="Form.Length" />
                 <select id="length-unit" aria-label="Length unit" @bind="Form.LengthUnit">
                     <option value="@LengthUnit.Feet">ft</option>
                     <option value="@LengthUnit.Inches">in</option>
@@ -78,7 +79,7 @@
         <label>
             Width
             <span class="measure">
-                <input id="width" type="number" min="0" step="any" @bind="Form.Width" />
+                <input id="width" type="number" min="0" max="@BedEstimator.MaxSide(Form.WidthUnit).ToString(CultureInfo.InvariantCulture)" step="any" @bind="Form.Width" />
                 <select id="width-unit" aria-label="Width unit" @bind="Form.WidthUnit">
                     <option value="@LengthUnit.Feet">ft</option>
                     <option value="@LengthUnit.Inches">in</option>
@@ -91,7 +92,7 @@
         <label>
             Height
             <select id="courses" @bind="Form.Courses">
-                @for (var courses = 1; courses <= MaxCourses; courses++)
+                @for (var courses = 1; courses <= BedEstimator.MaxCourses; courses++)
                 {
                     <option value="@courses">@HeightLabel(courses)</option>
                 }
@@ -118,7 +119,7 @@
 
         <label>
             Fill depth (in)
-            <input id="fill-depth" type="number" min="0" step="any" @bind="Form.FillDepthInches" />
+            <input id="fill-depth" type="number" min="0" max="@Form.HeightInches.ToString(CultureInfo.InvariantCulture)" step="any" @bind="Form.FillDepthInches" />
             <small>How deep the soil is. Starts 1 in below the top of the wall.</small>
         </label>
     </div>
@@ -126,7 +127,7 @@
     <div class="row">
         <label>
             Settling allowance (%)
-            <input id="settling" type="number" min="0" step="any" @bind="Form.SettlingPercent" />
+            <input id="settling" type="number" min="0" max="@BedEstimator.MaxSettlingPercent.ToString(CultureInfo.InvariantCulture)" step="any" @bind="Form.SettlingPercent" />
             <small>Extra soil to top up as the bed settles.</small>
         </label>
     </div>
@@ -135,8 +136,6 @@
 <EstimateView Outcome="@BedEstimator.Estimate(Beds, MaterialCatalog.Placeholder)" />
 
 @code {
-    private const int MaxCourses = 8;
-
     private string? _saved;
 
     private List<BedOrder> Beds { get; set; } = [new BedOrder(new BedForm())];
