@@ -64,6 +64,25 @@ public class HomeTests : BunitContext
 
 
     [Fact]
+    public void Render_when_width_exceeds_length_labels_walls_by_their_form_field()
+    {
+        var home = RenderHome();
+
+        home.Find("#length").Change("4");
+        home.Find("#width").Change("8");
+
+        var rows = home
+            .FindAll("#cut-list tbody tr")
+            .Select(row => (row.Children[2].TextContent, row.Children[3].TextContent))
+            .ToList();
+
+        Assert.Contains(("48 in", "Length walls"), rows);
+        Assert.Contains(("96 in", "Width walls"), rows);
+    }
+
+
+
+    [Fact]
     public void Render_when_height_options_are_shown_labels_each_with_inches_and_boards()
     {
         var options = RenderHome().FindAll("#courses option");

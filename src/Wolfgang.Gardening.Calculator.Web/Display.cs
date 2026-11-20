@@ -118,7 +118,10 @@ public static class Display
 
 
 
-    /// <summary>Says what a cut piece is for, e.g. <c>Long walls</c>.</summary>
+    /// <summary>
+    /// Says what a cut piece is for, e.g. <c>Length walls</c>. Walls are named after the form field they come
+    /// from, because nothing makes the length the longer side.
+    /// </summary>
     /// <param name="purpose">The piece's purpose.</param>
     /// <returns>The description.</returns>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="purpose"/> is not a defined <see cref="PiecePurpose"/>.</exception>
@@ -126,8 +129,8 @@ public static class Display
     {
         return purpose switch
         {
-            PiecePurpose.LengthWall => "Long walls",
-            PiecePurpose.WidthWall => "End walls",
+            PiecePurpose.LengthWall => "Length walls",
+            PiecePurpose.WidthWall => "Width walls",
             PiecePurpose.CornerPost => "Corner posts",
             _ => throw new ArgumentOutOfRangeException(nameof(purpose), purpose, "Unknown piece purpose."),
         };
