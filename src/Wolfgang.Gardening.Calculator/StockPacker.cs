@@ -360,18 +360,35 @@ public sealed class StockPacker
     private List<List<decimal>> FirstFitDecreasing(List<decimal> lengths, decimal capacity)
     {
         var bins = new List<List<decimal>>();
+        var free = new List<decimal>();
+
+        // Room on a board only shrinks, so for a run of equal lengths the first board that fits never moves
+        // back: each run resumes the scan where the previous piece of that length went.
+        var index = 0;
+        var previous = -1m;
 
         foreach (var length in lengths)
         {
-            var bin = bins.Find(cuts => Used(cuts) + KerfInches + length <= capacity);
+            if (length != previous)
+            {
+                index = 0;
+                previous = length;
+            }
 
-            if (bin is null)
+            while (index < bins.Count && free[index] < KerfInches + length)
+            {
+                index++;
+            }
+
+            if (index == bins.Count)
             {
                 bins.Add([length]);
+                free.Add(capacity - length);
             }
             else
             {
-                bin.Add(length);
+                bins[index].Add(length);
+                free[index] -= KerfInches + length;
             }
         }
 
