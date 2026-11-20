@@ -232,37 +232,49 @@ public sealed class StockPacker
 
 
     // The cheapest way to cut the remaining pieces. Each step takes a pattern that includes a piece of the
-    // first size still needed, so the same set of boards is not tried in every order.
-    private static Choice Solve(int[] remaining, List<Pattern> patterns, Dictionary<string, Choice> memo)
+    // first size still needed, so the same set of boards is not tried in every order. The search is a
+    // depth-first walk with an explicit stack: one level per board, so a recursive walk would overflow the
+    // call stack on a cut list of a few thousand pieces.
+    private static void Solve(int[] counts, List<Pattern> patterns, Dictionary<string, Choice> memo)
     {
-        var first = Array.FindIndex(remaining, count => count > 0);
-        if (first < 0)
-        {
-            return new Choice(0m, 0, Pattern: null);
-        }
+        // PackKind only searches a non-empty cut list, so the first frame always has a piece to cut.
+        var frames = new Stack<Frame>();
+        frames.Push(new Frame(counts, patterns));
 
-        var key = Key(remaining);
-        if (memo.TryGetValue(key, out var known))
+        while (frames.Count > 0)
         {
-            return known;
-        }
+            var frame = frames.Peek();
 
-        Choice? best = null;
-        foreach (var pattern in patterns.Where(pattern => pattern.Counts[first] > 0 && Fits(pattern.Counts, remaining)))
-        {
-            var rest = remaining.Zip(pattern.Counts, (have, use) => have - use).ToArray();
-            var after = Solve(rest, patterns, memo);
-            var choice = new Choice(after.Cost + pattern.Board.Stock.Price, after.Boards + 1, pattern);
-
-            if (best is null || choice.Cost < best.Cost || (choice.Cost == best.Cost && choice.Boards < best.Boards))
+            if (frame.Next == frame.Candidates.Count)
             {
-                best = choice;
+                // A pattern of one piece of the first size always fits, so there is always a choice.
+                memo[frame.Key] = frame.Best!;
+                frames.Pop();
+                continue;
             }
-        }
 
-        // A pattern of one piece of the first size always fits, so there is always a choice.
-        memo[key] = best!;
-        return best!;
+            var pattern = frame.Candidates[frame.Next];
+            var rest = frame.Remaining.Zip(pattern.Counts, (have, use) => have - use).ToArray();
+
+            var after = Array.TrueForAll(rest, count => count == 0)
+                ? new Choice(0m, 0, Pattern: null)
+                : memo.GetValueOrDefault(Key(rest));
+
+            if (after is null)
+            {
+                // Solve what is left first; this pattern is priced when the walk comes back to this frame.
+                frames.Push(new Frame(rest, patterns));
+                continue;
+            }
+
+            var choice = new Choice(after.Cost + pattern.Board.Stock.Price, after.Boards + 1, pattern);
+            if (frame.Best is null || choice.Cost < frame.Best.Cost || (choice.Cost == frame.Best.Cost && choice.Boards < frame.Best.Boards))
+            {
+                frame.Best = choice;
+            }
+
+            frame.Next++;
+        }
     }
 
 
@@ -343,4 +355,42 @@ public sealed class StockPacker
 
     // The cost and board count of cutting the remaining pieces, and the pattern to cut first.
     private sealed record Choice(decimal Cost, int Boards, Pattern? Pattern);
+
+
+
+    // One level of the search: the pieces still to cut, the patterns that take a piece of the first size
+    // still needed, the next of those patterns to price, and the cheapest choice found so far.
+    private sealed class Frame
+    {
+        public Frame(int[] remaining, List<Pattern> patterns)
+        {
+            var first = Array.FindIndex(remaining, count => count > 0);
+
+            Remaining = remaining;
+            Key = StockPacker.Key(remaining);
+            Candidates = patterns
+                .Where(pattern => pattern.Counts[first] > 0 && Fits(pattern.Counts, remaining))
+                .ToList();
+        }
+
+
+
+        public int[] Remaining { get; }
+
+
+
+        public string Key { get; }
+
+
+
+        public List<Pattern> Candidates { get; }
+
+
+
+        public int Next { get; set; }
+
+
+
+        public Choice? Best { get; set; }
+    }
 }

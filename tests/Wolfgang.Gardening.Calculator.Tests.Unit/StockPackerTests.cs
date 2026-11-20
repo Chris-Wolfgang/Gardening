@@ -142,6 +142,31 @@ public class StockPackerTests
 
 
     [Fact]
+    public void Pack_when_thousands_of_identical_pieces_cuts_every_piece_without_overflowing_the_stack()
+    {
+        var eight = new StockOption(Post, 96m, 4m);
+
+        var result = new StockPacker().Pack([new CutPiece(Post, 11m, 8000, PiecePurpose.CornerPost)], [eight]);
+
+        Assert.Equal(8000, result.Boards.Sum(board => board.Cuts.Count));
+        Assert.Equal([new StockPurchase(eight, 1000)], result.Purchases);
+    }
+
+
+
+    [Fact]
+    public void Pack_when_thousands_of_pieces_of_two_lengths_finds_the_cheapest_plan()
+    {
+        var eight = new StockOption(Wall, 96m, 10m);
+
+        var result = new StockPacker().Pack([Pieces(96m, 2000), Pieces(48m, 2000)], [eight]);
+
+        Assert.Equal([new StockPurchase(eight, 3000)], result.Purchases);
+    }
+
+
+
+    [Fact]
     public void Pack_when_pieces_are_different_kinds_cuts_each_from_its_own_stock()
     {
         var wallStock = new StockOption(Wall, 96m, 10m);
