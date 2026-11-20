@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Wolfgang.Gardening.Calculator.Web.Tests.Unit;
 
 public class BedListEstimatorTests
@@ -70,6 +72,51 @@ public class BedListEstimatorTests
             16,
             estimate.CutList.Where(piece => piece.Kind == UntreatedSix).Sum(piece => piece.Quantity)
         );
+    }
+
+
+
+    [Theory]
+    [InlineData("8x4,6x3,10x2,5x2.5")]
+    [InlineData("8x4,6x3,12x2,5x2.5,7x3.5")]
+    [InlineData("8x4,8x2,6x3,4x4,10x3")]
+    [InlineData("8x4,6x3,10x2")]
+    public void Estimate_when_beds_differ_costs_no_more_than_estimating_each_bed_alone(string sizes)
+    {
+        ArgumentNullException.ThrowIfNull(sizes);
+
+        var orders = sizes
+            .Split(',')
+            .Select(size => size.Split('x'))
+            .Select
+            (
+                size => new BedOrder
+                (
+                    new BedForm
+                    {
+                        Length = decimal.Parse(size[0], CultureInfo.InvariantCulture),
+                        Width = decimal.Parse(size[1], CultureInfo.InvariantCulture),
+                        CornerBracing = CornerBracing.None,
+                    }
+                )
+            )
+            .ToList();
+
+        var together = BedEstimator.Estimate(orders, MaterialCatalog.Placeholder).Estimate!.Lumber.TotalCost;
+        var separately = orders.Sum(order => BedEstimator.Estimate([order], MaterialCatalog.Placeholder).Estimate!.Lumber.TotalCost);
+
+        Assert.True(together <= separately, $"Together {together} costs more than separately {separately}.");
+    }
+
+
+
+    [Fact]
+    public void Estimate_when_many_copies_of_a_bed_costs_the_same_per_bed()
+    {
+        var one = BedEstimator.Estimate([new BedOrder(new BedForm { CornerBracing = CornerBracing.None })], MaterialCatalog.Placeholder).Estimate!;
+        var many = BedEstimator.Estimate([new BedOrder(new BedForm { CornerBracing = CornerBracing.None }) { Quantity = 130 }], MaterialCatalog.Placeholder).Estimate!;
+
+        Assert.Equal(one.Lumber.TotalCost * 130, many.Lumber.TotalCost);
     }
 
 

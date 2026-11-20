@@ -12,8 +12,9 @@ namespace Wolfgang.Gardening.Calculator;
 /// </para>
 /// <para>
 /// A cut list with many different lengths would make that search too slow, so past
-/// <see cref="MaxSearchSteps"/> the packer falls back to a heuristic: it fills the longest stock
-/// first-fit-decreasing, then buys each board at the cheapest length that holds its cuts.
+/// <see cref="MaxSearchSteps"/> the packer falls back to a heuristic: for each stock length it fills boards
+/// of that length first-fit-decreasing and buys each board at the cheapest length that holds its cuts, then
+/// keeps the cheapest of those plans.
 /// </para>
 /// </remarks>
 public sealed class StockPacker
@@ -293,12 +294,65 @@ public sealed class StockPacker
 
 
 
-    // Fallback: fill the longest stock first-fit-decreasing, then buy each board at its cheapest length.
+    // Fallback, cheapest of two kinds of plan (a tie goes to fewer boards):
+    // - for each stock length that holds the longest piece, fill boards of that length first-fit-decreasing
+    //   and buy each board at its cheapest length;
+    // - split the sizes, longest first, into runs small enough for the exact search, and search each run.
+    // Filling only the longest stock overbuys when longer boards cost more per foot.
     private List<PackedBoard> Heuristic(List<decimal> lengths, List<StockOption> options)
     {
-        return FirstFitDecreasing(lengths, options.Max(option => option.LengthInches))
-            .Select(cuts => Cheapest(cuts, options))
+        var longest = lengths[0];
+
+        var plans = options
+            .Select(option => option.LengthInches)
+            .Where(capacity => capacity >= longest)
+            .Distinct()
+            .Select
+            (
+                capacity => FirstFitDecreasing(lengths, capacity)
+                    .Select(cuts => Cheapest(cuts, options))
+                    .ToList()
+            )
             .ToList();
+
+        plans.Add(SearchInRuns(lengths, options));
+
+        return plans
+            .OrderBy(plan => plan.Sum(board => board.Stock.Price))
+            .ThenBy(plan => plan.Count)
+            .First();
+    }
+
+
+
+    // Adds sizes, longest first, to a run while the exact search can still solve it, then starts a new run.
+    // A run of one size that still cannot be searched is packed first-fit-decreasing.
+    private List<PackedBoard> SearchInRuns(List<decimal> lengths, List<StockOption> options)
+    {
+        var boards = new List<PackedBoard>();
+        var run = new List<decimal>();
+        List<PackedBoard>? solved = null;
+
+        foreach (var size in lengths.Distinct())
+        {
+            var pieces = lengths.FindAll(length => length == size);
+            var attempt = Search([.. run, .. pieces], options);
+
+            if (attempt is null && run.Count > 0)
+            {
+                boards.AddRange(solved!);
+                run.Clear();
+                attempt = Search(pieces, options);
+            }
+
+            run.AddRange(pieces);
+            solved = attempt ?? FirstFitDecreasing(run, options.Max(option => option.LengthInches))
+                .Select(cuts => Cheapest(cuts, options))
+                .ToList();
+        }
+
+        boards.AddRange(solved!);
+        return boards;
     }
 
 
