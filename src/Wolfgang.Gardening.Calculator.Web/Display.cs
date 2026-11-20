@@ -22,12 +22,15 @@ public static class Display
 
 
 
-    /// <summary>Formats a length in inches, e.g. <c>97.5 in</c>.</summary>
+    /// <summary>
+    /// Formats a length in inches to the nearest 1/16 in, the resolution of a tape measure, e.g.
+    /// <c>97.5 in</c> or <c>30.125 in</c>.
+    /// </summary>
     /// <param name="inches">The length in inches.</param>
     /// <returns>The formatted length.</returns>
     public static string Inches(decimal inches)
     {
-        return $"{Number(inches)} in";
+        return $"{Number(Sixteenths(inches), 4)} in";
     }
 
 
@@ -41,7 +44,7 @@ public static class Display
     public static string InchesAndFeet(decimal inches)
     {
         // Round first so 23.999 in shows as 2 ft, not 1 ft 12 in.
-        var rounded = Math.Round(inches, 2);
+        var rounded = Sixteenths(inches);
         var feet = Math.Floor(rounded / Length.InchesPerFoot);
         if (feet < 1m)
         {
@@ -49,7 +52,7 @@ public static class Display
         }
 
         var rest = rounded - (feet * Length.InchesPerFoot);
-        var feetAndInches = rest == 0m ? $"{Number(feet)} ft" : $"{Number(feet)} ft {Inches(rest)}";
+        var feetAndInches = rest == 0m ? $"{Number(feet, 0)} ft" : $"{Number(feet, 0)} ft {Inches(rest)}";
         return $"{Inches(rounded)} ({feetAndInches})";
     }
 
@@ -69,7 +72,7 @@ public static class Display
             _ => throw new ArgumentOutOfRangeException(nameof(unit), unit, "Unknown length unit."),
         };
 
-        return $"{Number(value)} {symbol}";
+        return $"{Number(value, 4)} {symbol}";
     }
 
 
@@ -79,7 +82,7 @@ public static class Display
     /// <returns>The formatted length.</returns>
     public static string Feet(decimal inches)
     {
-        return $"{Number(inches / Length.InchesPerFoot)} ft";
+        return $"{Number(inches / Length.InchesPerFoot, 2)} ft";
     }
 
 
@@ -89,7 +92,7 @@ public static class Display
     /// <returns>The formatted volume.</returns>
     public static string CubicFeet(decimal cubicFeet)
     {
-        return $"{Number(cubicFeet)} cu ft";
+        return $"{Number(cubicFeet, 2)} cu ft";
     }
 
 
@@ -132,8 +135,17 @@ public static class Display
 
 
 
-    private static string Number(decimal value)
+    // Rounds a length to the nearest 1/16 in, halves away from zero.
+    private static decimal Sixteenths(decimal inches)
     {
-        return Math.Round(value, 2).ToString("0.##", CultureInfo.InvariantCulture);
+        return Math.Round(inches * 16m, MidpointRounding.AwayFromZero) / 16m;
+    }
+
+
+
+    // Rounds halves away from zero (30.125 to two places is 30.13, not 30.12) and drops trailing zeros.
+    private static string Number(decimal value, int decimals)
+    {
+        return Math.Round(value, decimals, MidpointRounding.AwayFromZero).ToString("0.####", CultureInfo.InvariantCulture);
     }
 }
