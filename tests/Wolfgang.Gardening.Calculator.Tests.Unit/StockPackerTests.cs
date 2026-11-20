@@ -195,6 +195,70 @@ public class StockPackerTests
 
 
     [Fact]
+    public void Pack_when_a_piece_is_null_throws_ArgumentException()
+    {
+        var exception = Assert.Throws<ArgumentException>
+        (
+            () => new StockPacker().Pack([null!], [new StockOption(Wall, 96m, 10m)])
+        );
+
+        Assert.Equal("pieces", exception.ParamName);
+    }
+
+
+
+    [Fact]
+    public void Pack_when_a_piece_has_no_kind_throws_ArgumentException()
+    {
+        var exception = Assert.Throws<ArgumentException>
+        (
+            () => new StockPacker().Pack([Pieces(48m, 1) with { Kind = null! }], [new StockOption(Wall, 96m, 10m)])
+        );
+
+        Assert.Equal("pieces", exception.ParamName);
+    }
+
+
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-5)]
+    public void Pack_when_a_piece_length_is_not_positive_throws_ArgumentException(int length)
+    {
+        var exception = Assert.Throws<ArgumentException>
+        (
+            () => new StockPacker().Pack([Pieces(length, 2)], [new StockOption(Wall, 96m, 10m)])
+        );
+
+        Assert.Equal("pieces", exception.ParamName);
+    }
+
+
+
+    [Fact]
+    public void Pack_when_a_piece_quantity_is_negative_throws_ArgumentException()
+    {
+        var exception = Assert.Throws<ArgumentException>
+        (
+            () => new StockPacker().Pack([Pieces(90m, -1)], [new StockOption(Wall, 96m, 10m)])
+        );
+
+        Assert.Equal("pieces", exception.ParamName);
+    }
+
+
+
+    [Fact]
+    public void Pack_when_a_piece_quantity_is_zero_cuts_nothing_for_it()
+    {
+        var result = new StockPacker().Pack([Pieces(90m, 0)], [new StockOption(Wall, 96m, 10m)]);
+
+        Assert.Empty(result.Boards);
+    }
+
+
+
+    [Fact]
     public void Constructor_when_kerf_is_negative_throws_ArgumentOutOfRangeException()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => new StockPacker(kerfInches: -0.1m));

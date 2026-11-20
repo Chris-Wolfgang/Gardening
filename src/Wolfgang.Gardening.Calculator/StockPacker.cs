@@ -53,16 +53,26 @@ public sealed class StockPacker
     /// <param name="stock">The boards that can be bought.</param>
     /// <returns>The boards to buy and how each is cut.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="pieces"/> or <paramref name="stock"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="pieces"/> contains a <see langword="null"/> piece, a piece with no
+    /// <see cref="CutPiece.Kind"/>, a piece whose length is not positive or a piece whose quantity is negative.
+    /// </exception>
     /// <exception cref="InvalidOperationException">No stock of a piece's kind is long enough for it.</exception>
     public PackingResult Pack(IEnumerable<CutPiece> pieces, IEnumerable<StockOption> stock)
     {
         ArgumentNullException.ThrowIfNull(pieces);
         ArgumentNullException.ThrowIfNull(stock);
 
+        var cutList = pieces.ToList();
+        foreach (var piece in cutList)
+        {
+            Validate(piece, nameof(pieces));
+        }
+
         var options = stock.ToList();
         var boards = new List<PackedBoard>();
 
-        foreach (var group in pieces.GroupBy(piece => piece.Kind))
+        foreach (var group in cutList.GroupBy(piece => piece.Kind))
         {
             var lengths = group
                 .SelectMany(piece => Enumerable.Repeat(piece.LengthInches, piece.Quantity))
@@ -77,6 +87,40 @@ public sealed class StockPacker
         }
 
         return new PackingResult(boards);
+    }
+
+
+
+    // CutPiece is a positional record, so a `with` expression can bypass any constructor check; validate here.
+    private static void Validate(CutPiece? piece, string paramName)
+    {
+        if (piece is null)
+        {
+            throw new ArgumentException("The cut list contains a null piece.", paramName);
+        }
+
+        if (piece.Kind is null)
+        {
+            throw new ArgumentException("A piece in the cut list has no lumber kind.", paramName);
+        }
+
+        if (piece.LengthInches <= 0m)
+        {
+            throw new ArgumentException
+            (
+                $"A {piece.Purpose} piece is {piece.LengthInches} in long; pieces must be longer than 0 in.",
+                paramName
+            );
+        }
+
+        if (piece.Quantity < 0)
+        {
+            throw new ArgumentException
+            (
+                $"A {piece.Purpose} piece has a quantity of {piece.Quantity}; the quantity cannot be negative.",
+                paramName
+            );
+        }
     }
 
 
