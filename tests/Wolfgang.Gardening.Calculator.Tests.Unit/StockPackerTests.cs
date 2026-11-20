@@ -167,6 +167,20 @@ public class StockPackerTests
 
 
     [Fact]
+    public void Pack_when_one_size_alone_is_too_big_to_search_fills_boards_in_order()
+    {
+        // 960 ways to cut 1 in pieces from an 80 ft board, times 2101 piece counts, is past MaxSearchSteps.
+        var eighty = new StockOption(Wall, 960m, 50m);
+
+        var result = new StockPacker().Pack([Pieces(1m, 2100)], [eighty]);
+
+        Assert.Equal([new StockPurchase(eighty, 3)], result.Purchases);
+        Assert.Equal(2100, result.Boards.Sum(board => board.Cuts.Count));
+    }
+
+
+
+    [Fact]
     public void Pack_when_pieces_are_different_kinds_cuts_each_from_its_own_stock()
     {
         var wallStock = new StockOption(Wall, 96m, 10m);
