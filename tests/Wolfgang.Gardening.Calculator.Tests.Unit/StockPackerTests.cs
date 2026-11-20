@@ -92,6 +92,26 @@ public class StockPackerTests
 
 
     [Fact]
+    public void Pack_when_kerf_is_set_counts_the_cut_that_frees_the_offcut()
+    {
+        var result = new StockPacker(kerfInches: 0.125m).Pack([Pieces(90m, 1)], [new StockOption(Wall, 96m, 10m)]);
+
+        Assert.Equal(5.875m, Assert.Single(result.Boards).LeftoverInches);
+    }
+
+
+
+    [Fact]
+    public void Pack_when_kerf_is_set_and_pieces_fill_the_board_leaves_nothing()
+    {
+        var result = new StockPacker(kerfInches: 0.125m).Pack([Pieces(47.9375m, 2)], [new StockOption(Wall, 96m, 10m)]);
+
+        Assert.Equal(0m, Assert.Single(result.Boards).LeftoverInches);
+    }
+
+
+
+    [Fact]
     public void Pack_when_mixing_stock_lengths_is_cheapest_buys_a_mix()
     {
         // A 12 by 4 ft bed, two courses: four 12 ft walls and four 4 ft ends. Filling only 12 ft boards
