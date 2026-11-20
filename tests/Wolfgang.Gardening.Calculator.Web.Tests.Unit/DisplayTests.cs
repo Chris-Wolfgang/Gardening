@@ -132,8 +132,8 @@ public class DisplayTests
 
 
     [Theory]
-    [InlineData(PiecePurpose.LengthWall, "Long walls")]
-    [InlineData(PiecePurpose.WidthWall, "End walls")]
+    [InlineData(PiecePurpose.LengthWall, "Length walls")]
+    [InlineData(PiecePurpose.WidthWall, "Width walls")]
     [InlineData(PiecePurpose.CornerPost, "Corner posts")]
     public void Purpose_when_given_a_purpose_describes_it(PiecePurpose purpose, string expected)
     {
