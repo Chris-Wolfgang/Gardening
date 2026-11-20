@@ -54,7 +54,8 @@ public static class SavedBeds
     /// <param name="json">The saved JSON, or <see langword="null"/> when nothing was saved.</param>
     /// <returns>
     /// The beds, or <see langword="null"/> when nothing usable was saved: no JSON, JSON that does not
-    /// parse, another version, or an empty list.
+    /// parse, another version, an empty list, or a list with any bed that is missing, names an undefined
+    /// option, or is out of the range the page accepts (see <see cref="BedEstimator"/>).
     /// </returns>
     public static List<BedOrder>? Deserialize(string? json)
     {
@@ -73,7 +74,7 @@ public static class SavedBeds
             return null;
         }
 
-        if (saved is not { Version: CurrentVersion, Beds.Count: > 0 })
+        if (saved is not { Version: CurrentVersion, Beds.Count: > 0 } || !saved.Beds.All(IsUsable))
         {
             return null;
         }
@@ -81,6 +82,26 @@ public static class SavedBeds
         return saved.Beds
             .Select(bed => new BedOrder(ToForm(bed)) { Quantity = bed.Quantity })
             .ToList();
+    }
+
+
+
+    // Stored state outlives the code that wrote it, so check everything the page would otherwise trip over.
+    private static bool IsUsable(SavedBed? bed)
+    {
+        return bed is not null
+            && bed.BoardName is not null
+            && Enum.IsDefined(bed.Treatment)
+            && Enum.IsDefined(bed.LengthUnit)
+            && Enum.IsDefined(bed.WidthUnit)
+            && Enum.IsDefined(bed.CornerBracing)
+            && Enum.IsDefined(bed.SoilMode)
+            && bed.Quantity is >= 1 and <= BedEstimator.MaxQuantity
+            && bed.Courses is >= 1 and <= BedEstimator.MaxCourses
+            && bed.Length > 0m && bed.Length <= BedEstimator.MaxSide(bed.LengthUnit)
+            && bed.Width > 0m && bed.Width <= BedEstimator.MaxSide(bed.WidthUnit)
+            && bed.SettlingPercent >= 0m && bed.SettlingPercent <= BedEstimator.MaxSettlingPercent
+            && bed.FillDepthInches is null or >= 0m;
     }
 
 
