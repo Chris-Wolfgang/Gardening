@@ -259,6 +259,26 @@ public class StockPackerTests
 
 
     [Fact]
+    public void Pack_when_pieces_is_a_lazy_sequence_reads_it_once_and_packs_every_piece()
+    {
+        var reads = 0;
+
+        IEnumerable<CutPiece> Lazy()
+        {
+            reads++;
+            yield return Pieces(48m, 1);
+            yield return Pieces(48m, 1);
+        }
+
+        var result = new StockPacker().Pack(Lazy(), [new StockOption(Wall, 96m, 10m)]);
+
+        Assert.Equal(1, reads);
+        Assert.Equal([48m, 48m], Assert.Single(result.Boards).Cuts);
+    }
+
+
+
+    [Fact]
     public void Constructor_when_kerf_is_negative_throws_ArgumentOutOfRangeException()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => new StockPacker(kerfInches: -0.1m));
