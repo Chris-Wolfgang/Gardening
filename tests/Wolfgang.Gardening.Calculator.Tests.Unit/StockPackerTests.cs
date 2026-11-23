@@ -92,6 +92,26 @@ public class StockPackerTests
 
 
     [Fact]
+    public void Pack_when_kerf_is_set_counts_the_cut_that_frees_the_offcut()
+    {
+        var result = new StockPacker(kerfInches: 0.125m).Pack([Pieces(90m, 1)], [new StockOption(Wall, 96m, 10m)]);
+
+        Assert.Equal(5.875m, Assert.Single(result.Boards).LeftoverInches);
+    }
+
+
+
+    [Fact]
+    public void Pack_when_kerf_is_set_and_pieces_fill_the_board_leaves_nothing()
+    {
+        var result = new StockPacker(kerfInches: 0.125m).Pack([Pieces(47.9375m, 2)], [new StockOption(Wall, 96m, 10m)]);
+
+        Assert.Equal(0m, Assert.Single(result.Boards).LeftoverInches);
+    }
+
+
+
+    [Fact]
     public void Pack_when_mixing_stock_lengths_is_cheapest_buys_a_mix()
     {
         // A 12 by 4 ft bed, two courses: four 12 ft walls and four 4 ft ends. Filling only 12 ft boards
@@ -137,6 +157,45 @@ public class StockPackerTests
         var result = new StockPacker().Pack(pieces, [sixteen]);
 
         Assert.Equal(pieces.Sum(piece => piece.Quantity), result.Boards.Sum(board => board.Cuts.Count));
+    }
+
+
+
+    [Fact]
+    public void Pack_when_thousands_of_identical_pieces_cuts_every_piece_without_overflowing_the_stack()
+    {
+        var eight = new StockOption(Post, 96m, 4m);
+
+        var result = new StockPacker().Pack([new CutPiece(Post, 11m, 8000, PiecePurpose.CornerPost)], [eight]);
+
+        Assert.Equal(8000, result.Boards.Sum(board => board.Cuts.Count));
+        Assert.Equal([new StockPurchase(eight, 1000)], result.Purchases);
+    }
+
+
+
+    [Fact]
+    public void Pack_when_thousands_of_pieces_of_two_lengths_finds_the_cheapest_plan()
+    {
+        var eight = new StockOption(Wall, 96m, 10m);
+
+        var result = new StockPacker().Pack([Pieces(96m, 2000), Pieces(48m, 2000)], [eight]);
+
+        Assert.Equal([new StockPurchase(eight, 3000)], result.Purchases);
+    }
+
+
+
+    [Fact]
+    public void Pack_when_one_size_alone_is_too_big_to_search_fills_boards_in_order()
+    {
+        // 960 ways to cut 1 in pieces from an 80 ft board, times 2101 piece counts, is past MaxSearchSteps.
+        var eighty = new StockOption(Wall, 960m, 50m);
+
+        var result = new StockPacker().Pack([Pieces(1m, 2100)], [eighty]);
+
+        Assert.Equal([new StockPurchase(eighty, 3)], result.Purchases);
+        Assert.Equal(2100, result.Boards.Sum(board => board.Cuts.Count));
     }
 
 
@@ -190,6 +249,90 @@ public class StockPackerTests
     public void Pack_when_stock_is_null_throws_ArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() => new StockPacker().Pack([], null!));
+    }
+
+
+
+    [Fact]
+    public void Pack_when_a_piece_is_null_throws_ArgumentException()
+    {
+        var exception = Assert.Throws<ArgumentException>
+        (
+            () => new StockPacker().Pack([null!], [new StockOption(Wall, 96m, 10m)])
+        );
+
+        Assert.Equal("pieces", exception.ParamName);
+    }
+
+
+
+    [Fact]
+    public void Pack_when_a_piece_has_no_kind_throws_ArgumentException()
+    {
+        var exception = Assert.Throws<ArgumentException>
+        (
+            () => new StockPacker().Pack([Pieces(48m, 1) with { Kind = null! }], [new StockOption(Wall, 96m, 10m)])
+        );
+
+        Assert.Equal("pieces", exception.ParamName);
+    }
+
+
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-5)]
+    public void Pack_when_a_piece_length_is_not_positive_throws_ArgumentException(int length)
+    {
+        var exception = Assert.Throws<ArgumentException>
+        (
+            () => new StockPacker().Pack([Pieces(length, 2)], [new StockOption(Wall, 96m, 10m)])
+        );
+
+        Assert.Equal("pieces", exception.ParamName);
+    }
+
+
+
+    [Fact]
+    public void Pack_when_a_piece_quantity_is_negative_throws_ArgumentException()
+    {
+        var exception = Assert.Throws<ArgumentException>
+        (
+            () => new StockPacker().Pack([Pieces(90m, -1)], [new StockOption(Wall, 96m, 10m)])
+        );
+
+        Assert.Equal("pieces", exception.ParamName);
+    }
+
+
+
+    [Fact]
+    public void Pack_when_a_piece_quantity_is_zero_cuts_nothing_for_it()
+    {
+        var result = new StockPacker().Pack([Pieces(90m, 0)], [new StockOption(Wall, 96m, 10m)]);
+
+        Assert.Empty(result.Boards);
+    }
+
+
+
+    [Fact]
+    public void Pack_when_pieces_is_a_lazy_sequence_reads_it_once_and_packs_every_piece()
+    {
+        var reads = 0;
+
+        IEnumerable<CutPiece> Lazy()
+        {
+            reads++;
+            yield return Pieces(48m, 1);
+            yield return Pieces(48m, 1);
+        }
+
+        var result = new StockPacker().Pack(Lazy(), [new StockOption(Wall, 96m, 10m)]);
+
+        Assert.Equal(1, reads);
+        Assert.Equal([48m, 48m], Assert.Single(result.Boards).Cuts);
     }
 
 
