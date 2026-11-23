@@ -74,24 +74,40 @@ public static class SavedBeds
             return null;
         }
 
-        if (saved is not { Version: CurrentVersion, Beds.Count: > 0 } || !saved.Beds.All(IsUsable))
+        if (saved is not { Version: CurrentVersion, Beds.Count: > 0 })
         {
             return null;
         }
 
-        return saved.Beds
-            .Select(bed => new BedOrder(ToForm(bed)) { Quantity = bed.Quantity })
-            .ToList();
+        var orders = new List<BedOrder>(saved.Beds.Count);
+        foreach (var bed in saved.Beds)
+        {
+            if (ToOrder(bed) is not { } order)
+            {
+                return null;
+            }
+
+            orders.Add(order);
+        }
+
+        return orders;
     }
 
 
 
     // Stored state outlives the code that wrote it, so check everything the page would otherwise trip over.
-    private static bool IsUsable(SavedBed? bed)
+    private static BedOrder? ToOrder(SavedBed? bed)
     {
-        return bed is not null
-            && bed.BoardName is not null
-            && Enum.IsDefined(bed.Treatment)
+        return bed is { BoardName: { } boardName } && IsInRange(bed)
+            ? new BedOrder(ToForm(bed, boardName)) { Quantity = bed.Quantity }
+            : null;
+    }
+
+
+
+    private static bool IsInRange(SavedBed bed)
+    {
+        return Enum.IsDefined(bed.Treatment)
             && Enum.IsDefined(bed.LengthUnit)
             && Enum.IsDefined(bed.WidthUnit)
             && Enum.IsDefined(bed.CornerBracing)
@@ -106,12 +122,12 @@ public static class SavedBeds
 
 
 
-    private static BedForm ToForm(SavedBed bed)
+    private static BedForm ToForm(SavedBed bed, string boardName)
     {
         var form = new BedForm
         {
             Treatment = bed.Treatment,
-            BoardName = bed.BoardName,
+            BoardName = boardName,
             Length = bed.Length,
             LengthUnit = bed.LengthUnit,
             Width = bed.Width,
