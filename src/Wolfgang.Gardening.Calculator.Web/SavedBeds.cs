@@ -54,7 +54,8 @@ public static class SavedBeds
     /// <param name="json">The saved JSON, or <see langword="null"/> when nothing was saved.</param>
     /// <returns>
     /// The beds, or <see langword="null"/> when nothing usable was saved: no JSON, JSON that does not
-    /// parse, another version, or an empty list.
+    /// parse, another version, an empty list, or a list with any bed that is missing, names an undefined
+    /// option, or is out of the range the page accepts (see <see cref="BedEstimator"/>).
     /// </returns>
     public static List<BedOrder>? Deserialize(string? json)
     {
@@ -78,19 +79,55 @@ public static class SavedBeds
             return null;
         }
 
-        return saved.Beds
-            .Select(bed => new BedOrder(ToForm(bed)) { Quantity = bed.Quantity })
-            .ToList();
+        var orders = new List<BedOrder>(saved.Beds.Count);
+        foreach (var bed in saved.Beds)
+        {
+            if (ToOrder(bed) is not { } order)
+            {
+                return null;
+            }
+
+            orders.Add(order);
+        }
+
+        return orders;
     }
 
 
 
-    private static BedForm ToForm(SavedBed bed)
+    // Stored state outlives the code that wrote it, so check everything the page would otherwise trip over.
+    private static BedOrder? ToOrder(SavedBed? bed)
+    {
+        return bed is { BoardName: { } boardName } && IsInRange(bed)
+            ? new BedOrder(ToForm(bed, boardName)) { Quantity = bed.Quantity }
+            : null;
+    }
+
+
+
+    private static bool IsInRange(SavedBed bed)
+    {
+        return Enum.IsDefined(bed.Treatment)
+            && Enum.IsDefined(bed.LengthUnit)
+            && Enum.IsDefined(bed.WidthUnit)
+            && Enum.IsDefined(bed.CornerBracing)
+            && Enum.IsDefined(bed.SoilMode)
+            && bed.Quantity is >= 1 and <= BedEstimator.MaxQuantity
+            && bed.Courses is >= 1 and <= BedEstimator.MaxCourses
+            && bed.Length > 0m && bed.Length <= BedEstimator.MaxSide(bed.LengthUnit)
+            && bed.Width > 0m && bed.Width <= BedEstimator.MaxSide(bed.WidthUnit)
+            && bed.SettlingPercent >= 0m && bed.SettlingPercent <= BedEstimator.MaxSettlingPercent
+            && bed.FillDepthInches is null or >= 0m;
+    }
+
+
+
+    private static BedForm ToForm(SavedBed bed, string boardName)
     {
         var form = new BedForm
         {
             Treatment = bed.Treatment,
-            BoardName = bed.BoardName,
+            BoardName = boardName,
             Length = bed.Length,
             LengthUnit = bed.LengthUnit,
             Width = bed.Width,

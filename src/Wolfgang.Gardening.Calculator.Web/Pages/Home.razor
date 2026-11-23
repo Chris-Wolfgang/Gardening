@@ -1,5 +1,6 @@
 @page "/"
 @inject IJSRuntime Js
+@using System.Globalization
 
 <PageTitle>Raised bed calculator</PageTitle>
 
@@ -27,7 +28,7 @@
                     </td>
                     <td id="summary-@index">@Summary(order.Form)</td>
                     <td>
-                        <input id="count-@index" type="number" min="1" step="1" aria-label="How many of bed @(index + 1)" @bind="order.Quantity" />
+                        <input id="count-@index" type="number" min="1" max="@BedEstimator.MaxQuantity" step="1" aria-label="How many of bed @(index + 1)" @bind="order.Quantity" />
                     </td>
                     <td>
                         <button type="button" id="remove-@index" disabled="@(Beds.Count == 1)" @onclick="() => Remove(index)" @onclick:stopPropagation="true">Remove</button>
@@ -37,7 +38,14 @@
         </tbody>
     </table>
     <button type="button" id="add-bed" @onclick="AddBed">Add another bed</button>
-    <small>Your beds are saved in this browser, so they are here when you come back.</small>
+    @if (_storageAvailable)
+    {
+        <small id="storage-note">Your beds are saved in this browser, so they are here when you come back.</small>
+    }
+    else
+    {
+        <small id="storage-note">This browser is not letting the page save your beds, so they are lost when you leave.</small>
+    }
 </section>
 
 <section class="inputs" aria-label="Bed">
@@ -67,7 +75,7 @@
         <label>
             Length
             <span class="measure">
-                <input id="length" type="number" min="0" step="any" @bind="Form.Length" />
+                <input id="length" type="number" min="0" max="@BedEstimator.MaxSide(Form.LengthUnit).ToString(CultureInfo.InvariantCulture)" step="any" @bind="Form.Length" />
                 <select id="length-unit" aria-label="Length unit" @bind="Form.LengthUnit">
                     <option value="@LengthUnit.Feet">ft</option>
                     <option value="@LengthUnit.Inches">in</option>
@@ -78,7 +86,7 @@
         <label>
             Width
             <span class="measure">
-                <input id="width" type="number" min="0" step="any" @bind="Form.Width" />
+                <input id="width" type="number" min="0" max="@BedEstimator.MaxSide(Form.WidthUnit).ToString(CultureInfo.InvariantCulture)" step="any" @bind="Form.Width" />
                 <select id="width-unit" aria-label="Width unit" @bind="Form.WidthUnit">
                     <option value="@LengthUnit.Feet">ft</option>
                     <option value="@LengthUnit.Inches">in</option>
@@ -91,7 +99,7 @@
         <label>
             Height
             <select id="courses" @bind="Form.Courses">
-                @for (var courses = 1; courses <= MaxCourses; courses++)
+                @for (var courses = 1; courses <= BedEstimator.MaxCourses; courses++)
                 {
                     <option value="@courses">@HeightLabel(courses)</option>
                 }
@@ -118,7 +126,7 @@
 
         <label>
             Fill depth (in)
-            <input id="fill-depth" type="number" min="0" step="any" @bind="Form.FillDepthInches" />
+            <input id="fill-depth" type="number" min="0" max="@Form.HeightInches.ToString(CultureInfo.InvariantCulture)" step="any" @bind="Form.FillDepthInches" />
             <small>How deep the soil is. Starts 1 in below the top of the wall.</small>
         </label>
     </div>
@@ -126,7 +134,7 @@
     <div class="row">
         <label>
             Settling allowance (%)
-            <input id="settling" type="number" min="0" step="any" @bind="Form.SettlingPercent" />
+            <input id="settling" type="number" min="0" max="@BedEstimator.MaxSettlingPercent.ToString(CultureInfo.InvariantCulture)" step="any" @bind="Form.SettlingPercent" />
             <small>Extra soil to top up as the bed settles.</small>
         </label>
     </div>
@@ -135,9 +143,11 @@
 <EstimateView Outcome="@BedEstimator.Estimate(Beds, MaterialCatalog.Placeholder)" />
 
 @code {
-    private const int MaxCourses = 8;
-
     private string? _saved;
+
+    // False once the browser refuses local storage (site data blocked, or the quota used up). Saving is a
+    // convenience, so the calculator carries on with the list in memory.
+    private bool _storageAvailable = true;
 
     private List<BedOrder> Beds { get; set; } = [new BedOrder(new BedForm())];
 
@@ -152,7 +162,17 @@
     {
         if (firstRender)
         {
-            _saved = await Js.InvokeAsync<string?>("localStorage.getItem", SavedBeds.StorageKey);
+            try
+            {
+                _saved = await Js.InvokeAsync<string?>("localStorage.getItem", SavedBeds.StorageKey);
+            }
+            catch (JSException)
+            {
+                _storageAvailable = false;
+                StateHasChanged();
+                return;
+            }
+
             if (SavedBeds.Deserialize(_saved) is { } beds)
             {
                 Beds = beds;
@@ -163,11 +183,24 @@
         }
 
         // Every change re-renders the page, so saving here keeps the stored list current.
+        if (!_storageAvailable)
+        {
+            return;
+        }
+
         var json = SavedBeds.Serialize(Beds);
         if (!string.Equals(json, _saved, StringComparison.Ordinal))
         {
             _saved = json;
-            await Js.InvokeVoidAsync("localStorage.setItem", SavedBeds.StorageKey, json);
+            try
+            {
+                await Js.InvokeVoidAsync("localStorage.setItem", SavedBeds.StorageKey, json);
+            }
+            catch (JSException)
+            {
+                _storageAvailable = false;
+                StateHasChanged();
+            }
         }
     }
 

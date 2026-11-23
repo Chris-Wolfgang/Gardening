@@ -1,3 +1,4 @@
+using Microsoft.JSInterop;
 using Wolfgang.Gardening.Calculator.Web.Pages;
 
 namespace Wolfgang.Gardening.Calculator.Web.Tests.Unit;
@@ -156,5 +157,37 @@ public class HomeBedListTests : BunitContext
         var saved = JSInterop.VerifyInvoke("localStorage.setItem", calledTimes: 1)[0].Arguments;
         Assert.Equal(SavedBeds.StorageKey, saved[0]);
         Assert.Equal(12m, SavedBeds.Deserialize((string)saved[1]!)![0].Form.Length);
+    }
+
+
+
+    [Fact]
+    public void Render_when_the_browser_refuses_to_read_storage_still_estimates_and_says_beds_are_not_saved()
+    {
+        JSInterop.Setup<string?>("localStorage.getItem", SavedBeds.StorageKey).SetException(new JSException("SecurityError"));
+
+        var home = Render<Home>();
+        var total = home.Find("#total").TextContent;
+        home.Find("#length").Change("12");
+
+        Assert.Equal("$262.05", total);
+        Assert.Contains("not letting the page save", home.Find("#storage-note").TextContent, StringComparison.Ordinal);
+        JSInterop.VerifyNotInvoke("localStorage.setItem");
+    }
+
+
+
+    [Fact]
+    public void Change_when_the_browser_refuses_to_save_keeps_the_list_and_stops_saving()
+    {
+        JSInterop.SetupVoid("localStorage.setItem", _ => true).SetException(new JSException("QuotaExceededError"));
+        var home = Render<Home>();
+
+        home.Find("#length").Change("12");
+        home.Find("#length").Change("10");
+
+        Assert.Equal("10", home.Find("#length").GetAttribute("value"));
+        Assert.Contains("not letting the page save", home.Find("#storage-note").TextContent, StringComparison.Ordinal);
+        JSInterop.VerifyInvoke("localStorage.setItem", calledTimes: 1);
     }
 }
