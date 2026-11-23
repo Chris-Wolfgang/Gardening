@@ -2,7 +2,7 @@ namespace Wolfgang.Gardening.Calculator.Web;
 
 /// <summary>One saved bed. Internal to <see cref="SavedBeds"/>; public only for the JSON source generator.</summary>
 /// <param name="Treatment">See <see cref="BedForm.Treatment"/>.</param>
-/// <param name="BoardName">See <see cref="BedForm.BoardName"/>.</param>
+/// <param name="BoardName">See <see cref="BedForm.BoardName"/>. <see langword="null"/> when the JSON has none.</param>
 /// <param name="Length">See <see cref="BedForm.Length"/>.</param>
 /// <param name="LengthUnit">See <see cref="BedForm.LengthUnit"/>.</param>
 /// <param name="Width">See <see cref="BedForm.Width"/>.</param>
@@ -16,7 +16,7 @@ namespace Wolfgang.Gardening.Calculator.Web;
 public sealed record SavedBed
 (
     Treatment Treatment,
-    string BoardName,
+    string? BoardName,
     decimal Length,
     LengthUnit LengthUnit,
     decimal Width,

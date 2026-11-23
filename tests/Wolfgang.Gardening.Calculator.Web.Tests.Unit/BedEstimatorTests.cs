@@ -186,6 +186,72 @@ public class BedEstimatorTests
 
 
     [Fact]
+    public void Estimate_when_settling_is_above_the_maximum_says_so()
+    {
+        Assert.Equal("Settling can be at most 100%.", ErrorOf(new BedForm { SettlingPercent = 100.5m }));
+    }
+
+
+
+    [Fact]
+    public void Estimate_when_courses_is_above_the_maximum_says_so()
+    {
+        Assert.Equal("Pick a height of at most 8 boards.", ErrorOf(new BedForm { Courses = 9 }));
+    }
+
+
+
+    public static TheoryData<decimal, LengthUnit, decimal, LengthUnit> SidesTooLong { get; } = new()
+    {
+        { 100.5m, LengthUnit.Feet, 4m, LengthUnit.Feet },
+        { 8m, LengthUnit.Feet, 1201m, LengthUnit.Inches },
+        { decimal.MaxValue, LengthUnit.Feet, 4m, LengthUnit.Feet },
+        { 8m, LengthUnit.Feet, decimal.MaxValue, LengthUnit.Inches },
+    };
+
+
+
+    [Theory]
+    [MemberData(nameof(SidesTooLong))]
+    public void Estimate_when_a_side_is_above_the_maximum_says_so(decimal length, LengthUnit lengthUnit, decimal width, LengthUnit widthUnit)
+    {
+        Assert.Equal
+        (
+            "The length and width can each be at most 100 ft.",
+            ErrorOf(new BedForm { Length = length, LengthUnit = lengthUnit, Width = width, WidthUnit = widthUnit })
+        );
+    }
+
+
+
+    [Theory]
+    [InlineData(201)]
+    [InlineData(600_000_000)]
+    [InlineData(int.MaxValue)]
+    public void Estimate_when_a_quantity_is_above_the_maximum_says_so(int quantity)
+    {
+        Assert.Equal
+        (
+            "Build at most 200 of each bed.",
+            BedEstimator.Estimate([new BedOrder(new BedForm()) { Quantity = quantity }], MaterialCatalog.Placeholder).Error
+        );
+    }
+
+
+
+    [Fact]
+    public void Estimate_when_values_are_at_the_maximums_still_estimates()
+    {
+        var form = new BedForm { Length = 15m, Width = 180m, WidthUnit = LengthUnit.Inches, Courses = 8, SettlingPercent = 100m };
+
+        var outcome = BedEstimator.Estimate([new BedOrder(form) { Quantity = 200 }], MaterialCatalog.Placeholder);
+
+        Assert.Null(outcome.Error);
+    }
+
+
+
+    [Fact]
     public void Estimate_when_a_wall_is_longer_than_any_board_for_sale_says_so()
     {
         Assert.Equal

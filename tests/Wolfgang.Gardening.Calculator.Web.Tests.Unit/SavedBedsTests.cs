@@ -1,3 +1,5 @@
+using System.Text.Json.Nodes;
+
 namespace Wolfgang.Gardening.Calculator.Web.Tests.Unit;
 
 public class SavedBedsTests
@@ -75,6 +77,52 @@ public class SavedBedsTests
     public void Deserialize_when_nothing_usable_was_saved_returns_null(string? json)
     {
         Assert.Null(SavedBeds.Deserialize(json));
+    }
+
+
+
+    [Fact]
+    public void Deserialize_when_a_saved_bed_is_null_returns_null()
+    {
+        Assert.Null(SavedBeds.Deserialize("{\"version\":1,\"beds\":[null]}"));
+    }
+
+
+
+    [Theory]
+    [InlineData("boardName", "null")]
+    [InlineData("treatment", "7")]
+    [InlineData("lengthUnit", "5")]
+    [InlineData("widthUnit", "5")]
+    [InlineData("cornerBracing", "9")]
+    [InlineData("soilMode", "9")]
+    [InlineData("quantity", "0")]
+    [InlineData("quantity", "201")]
+    [InlineData("courses", "0")]
+    [InlineData("courses", "9")]
+    [InlineData("length", "0")]
+    [InlineData("length", "100.5")]
+    [InlineData("width", "-1")]
+    [InlineData("width", "79228162514264337593543950335")]
+    [InlineData("settlingPercent", "-1")]
+    [InlineData("settlingPercent", "101")]
+    [InlineData("fillDepthInches", "-1")]
+    public void Deserialize_when_a_saved_bed_has_an_unusable_value_returns_null(string property, string value)
+    {
+        var json = JsonNode.Parse(SavedBeds.Serialize([new BedOrder(new BedForm()), new BedOrder(new BedForm())]))!;
+        json["beds"]![1]![property] = JsonNode.Parse(value);
+
+        Assert.Null(SavedBeds.Deserialize(json.ToJsonString()));
+    }
+
+
+
+    [Fact]
+    public void Deserialize_when_a_saved_bed_has_inch_sizes_up_to_100_ft_restores_it()
+    {
+        var form = new BedForm { Length = 1200m, LengthUnit = LengthUnit.Inches, Width = 1200m, WidthUnit = LengthUnit.Inches };
+
+        Assert.NotNull(SavedBeds.Deserialize(SavedBeds.Serialize([new BedOrder(form)])));
     }
 
 

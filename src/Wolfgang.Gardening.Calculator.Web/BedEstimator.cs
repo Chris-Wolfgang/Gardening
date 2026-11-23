@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Wolfgang.Gardening.Calculator.Web;
 
 /// <summary>
@@ -6,6 +8,26 @@ namespace Wolfgang.Gardening.Calculator.Web;
 /// </summary>
 public static class BedEstimator
 {
+    /// <summary>The most copies of one bed an estimate takes.</summary>
+    public const int MaxQuantity = 200;
+
+
+
+    /// <summary>The longest length or width of a bed, in feet.</summary>
+    public const int MaxSideFeet = 100;
+
+
+
+    /// <summary>The most boards high a bed can be.</summary>
+    public const int MaxCourses = 8;
+
+
+
+    /// <summary>The largest settling allowance, in percent.</summary>
+    public const int MaxSettlingPercent = 100;
+
+
+
     /// <summary>
     /// Calculates the beds, cut list, lumber, screws and soil for every bed in <paramref name="orders"/>,
     /// buying lumber, screws and soil for all of them together.
@@ -92,17 +114,41 @@ public static class BedEstimator
 
 
 
+    /// <summary>
+    /// The longest length or width of a bed in <paramref name="unit"/>: <see cref="MaxSideFeet"/> feet.
+    /// </summary>
+    /// <param name="unit">The unit the length is entered in.</param>
+    /// <returns><see cref="MaxSideFeet"/> in <paramref name="unit"/>.</returns>
+    public static decimal MaxSide(LengthUnit unit)
+    {
+        return unit == LengthUnit.Inches ? MaxSideFeet * Length.InchesPerFoot : MaxSideFeet;
+    }
+
+
+
     private static string? FindInvalidInput(BedOrder order)
     {
         var form = order.Form;
-        var lengthInches = Length.ToInches(form.Length, form.LengthUnit);
-        var widthInches = Length.ToInches(form.Width, form.WidthUnit);
-        var thickness = form.Board.ThicknessInches;
 
         if (order.Quantity < 1)
         {
             return "Build at least 1 of each bed.";
         }
+
+        if (order.Quantity > MaxQuantity)
+        {
+            return $"Build at most {MaxQuantity} of each bed.";
+        }
+
+        // Check the size before converting it, so a huge value cannot overflow.
+        if (form.Length > MaxSide(form.LengthUnit) || form.Width > MaxSide(form.WidthUnit))
+        {
+            return $"The length and width can each be at most {Display.Measure(MaxSideFeet, LengthUnit.Feet)}.";
+        }
+
+        var lengthInches = Length.ToInches(form.Length, form.LengthUnit);
+        var widthInches = Length.ToInches(form.Width, form.WidthUnit);
+        var thickness = form.Board.ThicknessInches;
 
         if (lengthInches <= thickness || widthInches <= thickness)
         {
@@ -114,6 +160,11 @@ public static class BedEstimator
             return "Pick a height of at least one board.";
         }
 
+        if (form.Courses > MaxCourses)
+        {
+            return $"Pick a height of at most {MaxCourses} boards.";
+        }
+
         if (form.FillDepthInches < 0m || form.FillDepthInches > form.HeightInches)
         {
             return $"The fill depth must be between 0 and the wall height, {Display.Inches(form.HeightInches)}.";
@@ -122,6 +173,11 @@ public static class BedEstimator
         if (form.SettlingPercent < 0m)
         {
             return "Settling cannot be negative.";
+        }
+
+        if (form.SettlingPercent > MaxSettlingPercent)
+        {
+            return string.Create(CultureInfo.InvariantCulture, $"Settling can be at most {MaxSettlingPercent:0}%.");
         }
 
         return null;
