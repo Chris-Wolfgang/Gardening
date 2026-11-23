@@ -63,7 +63,8 @@ public sealed class StockPacker
         ArgumentNullException.ThrowIfNull(pieces);
         ArgumentNullException.ThrowIfNull(stock);
 
-        var cutList = pieces.ToList();
+        // The cut list is read twice (validated, then grouped), so copy it only when it is a lazy sequence.
+        var cutList = pieces as ICollection<CutPiece> ?? pieces.ToList();
         foreach (var piece in cutList)
         {
             Validate(piece, nameof(pieces));
