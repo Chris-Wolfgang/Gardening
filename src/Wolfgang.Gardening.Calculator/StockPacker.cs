@@ -175,7 +175,7 @@ public sealed class StockPacker
         var remaining = (int[])counts.Clone();
         while (remaining.Any(count => count > 0))
         {
-            var pattern = memo[Key(remaining)].Pattern!;
+            var pattern = memo[StateKey(remaining)].Pattern!;
             boards.Add(pattern.Board);
             for (var i = 0; i < remaining.Length; i++)
             {
@@ -259,7 +259,7 @@ public sealed class StockPacker
 
             var after = Array.TrueForAll(rest, count => count == 0)
                 ? new Choice(0m, 0, Pattern: null)
-                : memo.GetValueOrDefault(Key(rest));
+                : memo.GetValueOrDefault(StateKey(rest));
 
             if (after is null)
             {
@@ -280,14 +280,7 @@ public sealed class StockPacker
 
 
 
-    private static bool Fits(int[] use, int[] have)
-    {
-        return use.Zip(have, (needed, available) => needed <= available).All(fits => fits);
-    }
-
-
-
-    private static string Key(int[] counts)
+    private static string StateKey(int[] counts)
     {
         return string.Join(',', counts);
     }
@@ -447,7 +440,7 @@ public sealed class StockPacker
             var first = Array.FindIndex(remaining, count => count > 0);
 
             Remaining = remaining;
-            Key = StockPacker.Key(remaining);
+            Key = StateKey(remaining);
             Candidates = patterns
                 .Where(pattern => pattern.Counts[first] > 0 && Fits(pattern.Counts, remaining))
                 .ToList();
@@ -472,5 +465,12 @@ public sealed class StockPacker
 
 
         public Choice? Best { get; set; }
+
+
+
+        private static bool Fits(int[] use, int[] have)
+        {
+            return use.Zip(have, (needed, available) => needed <= available).All(fits => fits);
+        }
     }
 }
