@@ -13,15 +13,20 @@ public class DisplayTests
     public static TheoryData<decimal, string> InchesCases { get; } = new()
     {
         { 97.5m, "97.5 in" },
-        { 27.97265625m, "27.97 in" },
+        { 27.97265625m, "28 in" },
+        { 27.90625m, "27.9375 in" },
         { 11m, "11 in" },
+        { 30.125m, "30.125 in" },
+        { 30.375m, "30.375 in" },
+        { 30.0625m, "30.0625 in" },
+        { 30.03125m, "30.0625 in" },
     };
 
 
 
     [Theory]
     [MemberData(nameof(InchesCases))]
-    public void Inches_when_given_a_length_rounds_to_two_places(decimal inches, string expected)
+    public void Inches_when_given_a_length_rounds_to_the_nearest_sixteenth(decimal inches, string expected)
     {
         Assert.Equal(expected, Display.Inches(inches));
     }
@@ -35,6 +40,7 @@ public class DisplayTests
         { 12m, "12 in (1 ft)" },
         { 11m, "11 in" },
         { 23.999m, "24 in (2 ft)" },
+        { 30.125m, "30.125 in (2 ft 6.125 in)" },
     };
 
 
@@ -52,6 +58,8 @@ public class DisplayTests
     {
         { 8m, LengthUnit.Feet, "8 ft" },
         { 30.5m, LengthUnit.Inches, "30.5 in" },
+        { 30.0625m, LengthUnit.Inches, "30.0625 in" },
+        { 8.125m, LengthUnit.Feet, "8.125 ft" },
     };
 
 
@@ -89,6 +97,14 @@ public class DisplayTests
 
 
 
+    [Fact]
+    public void CubicFeet_when_the_volume_is_a_half_cent_rounds_away_from_zero()
+    {
+        Assert.Equal("30.13 cu ft", Display.CubicFeet(30.125m));
+    }
+
+
+
     [Theory]
     [InlineData(Treatment.PressureTreated, "pressure-treated 2x6")]
     [InlineData(Treatment.Untreated, "untreated 2x6")]
@@ -116,8 +132,8 @@ public class DisplayTests
 
 
     [Theory]
-    [InlineData(PiecePurpose.LengthWall, "Long walls")]
-    [InlineData(PiecePurpose.WidthWall, "End walls")]
+    [InlineData(PiecePurpose.LengthWall, "Length walls")]
+    [InlineData(PiecePurpose.WidthWall, "Width walls")]
     [InlineData(PiecePurpose.CornerPost, "Corner posts")]
     public void Purpose_when_given_a_purpose_describes_it(PiecePurpose purpose, string expected)
     {

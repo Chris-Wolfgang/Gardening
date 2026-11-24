@@ -56,6 +56,65 @@ public class HomeTests : BunitContext
 
 
     [Fact]
+    public void Render_when_cut_patterns_are_shown_says_they_allow_nothing_for_the_saw_blade()
+    {
+        Assert.Contains("allow nothing for the saw blade", RenderHome().Find("#kerf-note").TextContent, StringComparison.Ordinal);
+    }
+
+
+
+    [Fact]
+    public void Render_when_width_exceeds_length_labels_walls_by_their_form_field()
+    {
+        var home = RenderHome();
+
+        home.Find("#length").Change("4");
+        home.Find("#width").Change("8");
+
+        var rows = home
+            .FindAll("#cut-list tbody tr")
+            .Select(row => (row.Children[2].TextContent, row.Children[3].TextContent))
+            .ToList();
+
+        Assert.Contains(("48 in", "Length walls"), rows);
+        Assert.Contains(("96 in", "Width walls"), rows);
+    }
+
+
+
+    [Fact]
+    public void Render_when_form_is_the_default_caps_the_inputs_at_the_estimator_maximums()
+    {
+        var home = RenderHome();
+
+        Assert.Equal
+        (
+            ("200", "100", "100", "11.0", "100"),
+            (
+                home.Find("#count-0").GetAttribute("max"),
+                home.Find("#length").GetAttribute("max"),
+                home.Find("#width").GetAttribute("max"),
+                home.Find("#fill-depth").GetAttribute("max"),
+                home.Find("#settling").GetAttribute("max")
+            )
+        );
+    }
+
+
+
+    [Fact]
+    public void Change_when_a_unit_is_inches_caps_that_side_at_1200_in()
+    {
+        var home = RenderHome();
+
+        home.Find("#width-unit").Change(nameof(LengthUnit.Inches));
+
+        Assert.Equal("1200", home.Find("#width").GetAttribute("max"));
+    }
+
+
+
+    [Fact]
     public void Render_when_height_options_are_shown_labels_each_with_inches_and_boards()
     {
         var options = RenderHome().FindAll("#courses option");
