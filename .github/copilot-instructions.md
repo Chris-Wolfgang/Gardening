@@ -2,16 +2,16 @@
 
 ## Repository Summary
 
-This is a **repository template** for creating new .NET repositories. It provides a standardized structure with comprehensive GitHub integration, CI/CD workflows, and development tooling. The template supports multi-TFM .NET projects using C# and follows Microsoft's recommended project organization patterns.
+Gardening tools and guides for home gardeners: a raised-bed calculator (a C# library, `src/Wolfgang.Gardening.Calculator`, and a Blazor WebAssembly front end, `src/Wolfgang.Gardening.Calculator.Web`), structured plant data under `data/`, and an MkDocs site under `docs/`. The repository was generated from the Chris-Wolfgang .NET repository template, so the CI, analyzer and script tooling below is the template's.
 
-**Repository Type**: Template (not a working project — it contains no csproj)
-**Target Platforms**: .NET Framework 4.6.2–4.8.1, .NET Core 3.1, .NET 5.0–10.0
+**Repository Type**: Application (not published as a package; `IsPackable` is `false`)
+**Target Platforms**: `net10.0` only
 **Primary Language**: C#; the `scripts/` tooling is PowerShell 7 (`pwsh`). The one shell script is the git hook `.githooks/pre-commit` (bash, as git hooks must be), and CI `run:` steps use bash on the Linux/macOS stages.
 
 ## Build and Validation Instructions
 
 ### Prerequisites
-- .NET SDK — the current release (10.0); CI installs 3.1 through 10.0 for the multi-target matrix
+- .NET 10 SDK — `global.json` pins 10.0.100 and rolls forward to the latest feature band
 - PowerShell 7 (`pwsh`) — every script under `scripts/`
 - A bash on PATH for the pre-commit hook (`.githooks/pre-commit`; Git for Windows ships one) plus the optional gitleaks CLI (`git config core.hooksPath .githooks`)
 
@@ -51,7 +51,7 @@ This is a **repository template** for creating new .NET repositories. It provide
 ### Standard Directory Structure
 ```
 root/
-├── MySolution.slnx             # Solution file (setup.ps1 can create it)
+├── Gardening.slnx              # Solution file
 ├── src/                        # Library / application projects
 ├── tests/                      # Test projects (*.Tests.Unit, *.Tests.Integration)
 ├── benchmarks/                 # Performance benchmarks (optional)
@@ -70,7 +70,6 @@ root/
 - **`BannedSymbols.txt`**: Async-first enforcement (blocking waits, sync I/O, `Parallel.*`, obsolete APIs).
 - **`coverlet.runsettings`**: coverage collection, test assemblies instrumented too.
 - **`.gitleaks.toml`**: gitleaks allowlist (extends the default rules).
-- **`REPO-INSTRUCTIONS.md`** / **`TEMPLATE-PLACEHOLDERS.md`**: template setup instructions and placeholder reference.
 - **`CONTRIBUTING.md`**, **`SECURITY.md`**, **`CODE_OF_CONDUCT.md`**: contribution guidelines, reporting channel + response timelines, Contributor Covenant.
 
 ### GitHub Integration
@@ -120,9 +119,8 @@ Branch protection rules are configured by running the local PowerShell script `s
 ## Key Files and Locations
 
 ### Root Directory Files
-- `README.md` - Template description (replaced by `README-TEMPLATE.md` during setup)
+- `README.md` - What the repository holds and how to build, test and run it
 - `LICENSE` - Chosen at setup (MIT, Apache-2.0, MPL-2.0, or custom/TBD)
-- `REPO-INSTRUCTIONS.md` - Template setup instructions (delete after setup)
 - `.editorconfig`, `Directory.Build.props`, `BannedSymbols.txt`, `coverlet.runsettings` - see above
 - `.config/dotnet-tools.json` - pinned CI tools (CycloneDX, nuget-license, ReSharper InspectCode, ReportGenerator, DevSkim, docfx, sourcelink, Stryker); workflows run `dotnet tool restore`, Dependabot bumps it, and it is a protected file
 - `.gitignore` - .NET-specific gitignore; `.gitattributes` - LF for every text file
@@ -189,7 +187,7 @@ When a new repo is created from this template:
 This information has been validated against the template structure and GitHub workflows (last checked 2026-09-16). **Only search for additional information if these instructions are incomplete or found to be incorrect.**
 
 ### When Working with This Template
-1. **Creating New Projects**: Follow the structure outlined in `REPO-INSTRUCTIONS.md`
+1. **Creating New Projects**: Follow the structure above: `src/Wolfgang.Gardening.<Name>/` with a matching `tests/Wolfgang.Gardening.<Name>.Tests.Unit/` project, targeting `net10.0`
 2. **Adding Dependencies**: Use `dotnet add package` commands
 3. **Code Style**: Follow `.editorconfig` rules (file-scoped namespaces, `var` where the type is apparent, Allman braces)
 4. **Testing**: put test projects under `tests/`; keep the `.Tests.Unit` / `.Tests.Integration` suffixes
