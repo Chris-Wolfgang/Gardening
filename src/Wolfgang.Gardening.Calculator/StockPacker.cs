@@ -174,14 +174,14 @@ public sealed class StockPacker
             return null;
         }
 
-        var memo = new Dictionary<string, Choice>();
+        var memo = new Dictionary<int[], Choice>(CountsComparer.Instance);
         Solve(counts, patterns, memo);
 
         var boards = new List<PackedBoard>();
         var remaining = (int[])counts.Clone();
         while (remaining.Any(count => count > 0))
         {
-            var pattern = memo[StateKey(remaining)].Pattern!;
+            var pattern = memo[remaining].Pattern!;
             boards.Add(pattern.Board);
             for (var i = 0; i < remaining.Length; i++)
             {
@@ -242,7 +242,7 @@ public sealed class StockPacker
     // first size still needed, so the same set of boards is not tried in every order. The search is a
     // depth-first walk with an explicit stack: one level per board, so a recursive walk would overflow the
     // call stack on a cut list of a few thousand pieces.
-    private static void Solve(int[] counts, List<Pattern> patterns, Dictionary<string, Choice> memo)
+    private static void Solve(int[] counts, List<Pattern> patterns, Dictionary<int[], Choice> memo)
     {
         // PackKind only searches a non-empty cut list, so the first frame always has a piece to cut.
         var frames = new Stack<Frame>();
@@ -255,17 +255,17 @@ public sealed class StockPacker
             if (frame.Next == frame.Candidates.Count)
             {
                 // A pattern of one piece of the first size always fits, so there is always a choice.
-                memo[frame.Key] = frame.Best!;
+                memo[frame.Remaining] = frame.Best!;
                 frames.Pop();
                 continue;
             }
 
             var pattern = frame.Candidates[frame.Next];
-            var rest = frame.Remaining.Zip(pattern.Counts, (have, use) => have - use).ToArray();
+            var rest = Subtract(frame.Remaining, pattern.Counts);
 
             var after = Array.TrueForAll(rest, count => count == 0)
                 ? new Choice(0m, 0, Pattern: null)
-                : memo.GetValueOrDefault(StateKey(rest));
+                : memo.GetValueOrDefault(rest);
 
             if (after is null)
             {
@@ -286,9 +286,16 @@ public sealed class StockPacker
 
 
 
-    private static string StateKey(int[] counts)
+    // The search visits up to MaxSearchSteps states, so this avoids LINQ's per-call enumerators and buffers.
+    private static int[] Subtract(int[] have, int[] use)
     {
-        return string.Join(',', counts);
+        var rest = new int[have.Length];
+        for (var i = 0; i < have.Length; i++)
+        {
+            rest[i] = have[i] - use[i];
+        }
+
+        return rest;
     }
 
 
@@ -446,19 +453,19 @@ public sealed class StockPacker
             var first = Array.FindIndex(remaining, count => count > 0);
 
             Remaining = remaining;
-            Key = StateKey(remaining);
-            Candidates = patterns
-                .Where(pattern => pattern.Counts[first] > 0 && Fits(pattern.Counts, remaining))
-                .ToList();
+            Candidates = [];
+            foreach (var pattern in patterns)
+            {
+                if (pattern.Counts[first] > 0 && Fits(pattern.Counts, remaining))
+                {
+                    Candidates.Add(pattern);
+                }
+            }
         }
 
 
 
         public int[] Remaining { get; }
-
-
-
-        public string Key { get; }
 
 
 
@@ -476,7 +483,44 @@ public sealed class StockPacker
 
         private static bool Fits(int[] use, int[] have)
         {
-            return use.Zip(have, (needed, available) => needed <= available).All(fits => fits);
+            for (var i = 0; i < use.Length; i++)
+            {
+                if (use[i] > have[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
+
+
+    // Memo keys are the counts of each size still to cut, compared by value. A joined string per state cost
+    // hundreds of megabytes on large cut lists.
+    private sealed class CountsComparer : IEqualityComparer<int[]>
+    {
+        public static CountsComparer Instance { get; } = new();
+
+
+
+        public bool Equals(int[]? x, int[]? y)
+        {
+            return x.AsSpan().SequenceEqual(y);
+        }
+
+
+
+        public int GetHashCode(int[] obj)
+        {
+            var hash = new HashCode();
+            foreach (var count in obj)
+            {
+                hash.Add(count);
+            }
+
+            return hash.ToHashCode();
         }
     }
 }
