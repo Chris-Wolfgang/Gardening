@@ -56,7 +56,8 @@ public sealed class StockPacker
     /// <exception cref="ArgumentNullException"><paramref name="pieces"/> or <paramref name="stock"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException">
     /// <paramref name="pieces"/> contains a <see langword="null"/> piece, a piece with no
-    /// <see cref="CutPiece.Kind"/>, a piece whose length is not positive or a piece whose quantity is negative.
+    /// <see cref="CutPiece.Kind"/>, a piece whose length is not positive or a piece whose quantity is negative;
+    /// or <paramref name="stock"/> contains a <see langword="null"/> option.
     /// </exception>
     /// <exception cref="InvalidOperationException">No stock of a piece's kind is long enough for it.</exception>
     public PackingResult Pack(IEnumerable<CutPiece> pieces, IEnumerable<StockOption> stock)
@@ -72,6 +73,11 @@ public sealed class StockPacker
         }
 
         var options = stock.ToList();
+        if (options.Contains(null!))
+        {
+            throw new ArgumentException("The stock list contains a null option.", nameof(stock));
+        }
+
         var boards = new List<PackedBoard>();
 
         foreach (var group in cutList.GroupBy(piece => piece.Kind))

@@ -267,6 +267,19 @@ public class StockPackerTests
 
 
     [Fact]
+    public void Pack_when_a_stock_option_is_null_throws_ArgumentException()
+    {
+        var exception = Assert.Throws<ArgumentException>
+        (
+            () => new StockPacker().Pack([Pieces(48m, 1)], [new StockOption(Wall, 96m, 10m), null!])
+        );
+
+        Assert.Equal("stock", exception.ParamName);
+    }
+
+
+
+    [Fact]
     public void Pack_when_a_piece_has_no_kind_throws_ArgumentException()
     {
         var exception = Assert.Throws<ArgumentException>
