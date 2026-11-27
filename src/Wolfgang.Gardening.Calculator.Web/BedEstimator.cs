@@ -126,6 +126,35 @@ public static class BedEstimator
 
 
 
+    private static string? FindInvalidSize(BedForm form)
+    {
+        // Check the size before converting it, so a huge value of either sign cannot overflow.
+        if (form.Length > MaxSide(form.LengthUnit) || form.Width > MaxSide(form.WidthUnit))
+        {
+            return $"The length and width can each be at most {Display.Measure(MaxSideFeet, LengthUnit.Feet)}.";
+        }
+
+        var thickness = form.Board.ThicknessInches;
+        var tooShort = $"The length and width must each be more than {Display.Inches(thickness)}, the board thickness.";
+
+        if (form.Length <= 0m || form.Width <= 0m)
+        {
+            return tooShort;
+        }
+
+        var lengthInches = Length.ToInches(form.Length, form.LengthUnit);
+        var widthInches = Length.ToInches(form.Width, form.WidthUnit);
+
+        if (lengthInches <= thickness || widthInches <= thickness)
+        {
+            return tooShort;
+        }
+
+        return null;
+    }
+
+
+
     private static string? FindInvalidInput(BedOrder order)
     {
         var form = order.Form;
@@ -140,19 +169,10 @@ public static class BedEstimator
             return $"Build at most {MaxQuantity} of each bed.";
         }
 
-        // Check the size before converting it, so a huge value cannot overflow.
-        if (form.Length > MaxSide(form.LengthUnit) || form.Width > MaxSide(form.WidthUnit))
+        var sizeError = FindInvalidSize(form);
+        if (sizeError is not null)
         {
-            return $"The length and width can each be at most {Display.Measure(MaxSideFeet, LengthUnit.Feet)}.";
-        }
-
-        var lengthInches = Length.ToInches(form.Length, form.LengthUnit);
-        var widthInches = Length.ToInches(form.Width, form.WidthUnit);
-        var thickness = form.Board.ThicknessInches;
-
-        if (lengthInches <= thickness || widthInches <= thickness)
-        {
-            return $"The length and width must each be more than {Display.Inches(thickness)}, the board thickness.";
+            return sizeError;
         }
 
         if (form.Courses < 1)
