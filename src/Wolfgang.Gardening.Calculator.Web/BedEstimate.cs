@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Wolfgang.Gardening.Calculator.Web;
 
 /// <summary>
@@ -32,7 +34,7 @@ public sealed class BedEstimate
         CutList = CombineCutLists(beds);
         Lumber = lumber;
         CutPatterns = lumber.Boards
-            .GroupBy(board => (board.Stock, Cuts: string.Join(',', board.Cuts)))
+            .GroupBy(board => (board.Stock, Cuts: CutsKey(board.Cuts)))
             .Select(group => new CutPattern(group.Key.Stock, group.First().Cuts, group.First().LeftoverInches, group.Count()))
             .ToList();
         ScrewProduct = screwProduct;
@@ -119,5 +121,14 @@ public sealed class BedEstimate
             .GroupBy(piece => (piece.Kind, piece.LengthInches, piece.Purpose))
             .Select(group => group.First() with { Quantity = group.Sum(piece => piece.Quantity) })
             .ToList();
+    }
+
+
+
+    // Group on the cut values, not on culture-dependent text: "G29" drops trailing zeros, so 96 and 96.0 match,
+    // and the invariant culture keeps a decimal comma from merging [1.5, 2] with [1, 5.2].
+    private static string CutsKey(IReadOnlyList<decimal> cuts)
+    {
+        return string.Join(';', cuts.Select(cut => cut.ToString("G29", CultureInfo.InvariantCulture)));
     }
 }
