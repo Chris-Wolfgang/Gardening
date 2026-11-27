@@ -17,7 +17,6 @@ theme:
 # docs/ also holds repository-maintenance documents that are not part of the site.
 exclude_docs: |
   README-FORMATTING.md
-  RELEASE-WORKFLOW-SETUP.md
   STACKED-PRS.md
   WORKFLOW_SECURITY.md
   repository-baseline.md
