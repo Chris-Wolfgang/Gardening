@@ -140,7 +140,7 @@
     </div>
 </section>
 
-<EstimateView Outcome="@BedEstimator.Estimate(Beds, MaterialCatalog.Placeholder)" />
+<EstimateView Outcome="@CurrentEstimate()" />
 
 @code {
     private string? _saved;
@@ -154,6 +154,12 @@
     private int Selected { get; set; }
 
     private BedForm Form => Beds[Selected].Form;
+
+    // The estimate and the serialized bed list it was computed for. Every event re-renders the page, and most
+    // (selecting a bed, a keystroke that leaves a value unchanged) do not change the list, so reuse it then.
+    private string? _estimateKey;
+
+    private EstimateOutcome? _estimate;
 
 
 
@@ -202,6 +208,20 @@
                 StateHasChanged();
             }
         }
+    }
+
+
+
+    private EstimateOutcome CurrentEstimate()
+    {
+        var key = SavedBeds.Serialize(Beds);
+        if (_estimate is null || !string.Equals(key, _estimateKey, StringComparison.Ordinal))
+        {
+            _estimateKey = key;
+            _estimate = BedEstimator.Estimate(Beds, MaterialCatalog.Placeholder);
+        }
+
+        return _estimate;
     }
 
 

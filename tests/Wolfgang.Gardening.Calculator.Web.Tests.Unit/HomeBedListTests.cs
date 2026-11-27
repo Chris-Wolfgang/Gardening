@@ -83,6 +83,32 @@ public class HomeBedListTests : BunitContext
 
 
     [Fact]
+    public void Click_when_only_the_selected_bed_changes_reuses_the_estimate()
+    {
+        var home = ThreeBeds(selected: 2);
+        var before = home.FindComponent<EstimateView>().Instance.Outcome;
+
+        home.Find("#summary-1").Click();
+
+        Assert.Same(before, home.FindComponent<EstimateView>().Instance.Outcome);
+    }
+
+
+
+    [Fact]
+    public void Change_when_a_bed_changes_recomputes_the_estimate()
+    {
+        var home = ThreeBeds(selected: 2);
+        var before = home.FindComponent<EstimateView>().Instance.Outcome;
+
+        home.Find("#length").Change("14");
+
+        Assert.NotSame(before, home.FindComponent<EstimateView>().Instance.Outcome);
+    }
+
+
+
+    [Fact]
     public void Change_when_a_count_is_raised_builds_that_many()
     {
         var home = Render<Home>();
