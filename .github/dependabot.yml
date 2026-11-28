@@ -11,6 +11,13 @@ updates:
       dotnet-dependencies:
         patterns:
           - "*"
+    ignore:
+      # The web app targets net10.0. The DevServer package's tool is a .NET app of the package's major
+      # version (11.0.0 ships a net11.0 blazor-devserver), so a major bump makes `dotnet run` need the
+      # next runtime, and the WebAssembly packages must stay on the same major as the TFM. Move these
+      # by hand together with the TargetFramework.
+      - dependency-name: "Microsoft.AspNetCore.Components.WebAssembly*"
+        update-types: ["version-update:semver-major"]
 
   # Keep third-party GitHub Actions pinned in workflows up to date.
   - package-ecosystem: "github-actions"

@@ -122,6 +122,16 @@ public class BedEstimatorTests
 
 
     [Fact]
+    public void Estimate_when_the_length_is_no_longer_than_the_board_thickness_says_so()
+    {
+        var form = new BedForm { Length = 1m, LengthUnit = LengthUnit.Inches };
+
+        Assert.Equal("The length and width must each be more than 1.5 in, the board thickness.", ErrorOf(form));
+    }
+
+
+
+    [Fact]
     public void Estimate_when_a_side_is_no_longer_than_the_board_thickness_says_so()
     {
         var form = new BedForm { Width = 1.5m, WidthUnit = LengthUnit.Inches };
@@ -208,6 +218,31 @@ public class BedEstimatorTests
         { decimal.MaxValue, LengthUnit.Feet, 4m, LengthUnit.Feet },
         { 8m, LengthUnit.Feet, decimal.MaxValue, LengthUnit.Inches },
     };
+
+
+
+    public static TheoryData<decimal, LengthUnit, decimal, LengthUnit> SidesNotPositive { get; } = new()
+    {
+        { decimal.MinValue, LengthUnit.Feet, 4m, LengthUnit.Feet },
+        { 8m, LengthUnit.Feet, decimal.MinValue, LengthUnit.Feet },
+        { decimal.MinValue, LengthUnit.Inches, 4m, LengthUnit.Feet },
+        { 8m, LengthUnit.Feet, decimal.MinValue, LengthUnit.Inches },
+        { -1m, LengthUnit.Feet, 4m, LengthUnit.Feet },
+        { 0m, LengthUnit.Feet, 4m, LengthUnit.Feet },
+    };
+
+
+
+    [Theory]
+    [MemberData(nameof(SidesNotPositive))]
+    public void Estimate_when_a_side_is_not_positive_says_so_without_overflowing(decimal length, LengthUnit lengthUnit, decimal width, LengthUnit widthUnit)
+    {
+        Assert.Equal
+        (
+            "The length and width must each be more than 1.5 in, the board thickness.",
+            ErrorOf(new BedForm { Length = length, LengthUnit = lengthUnit, Width = width, WidthUnit = widthUnit })
+        );
+    }
 
 
 

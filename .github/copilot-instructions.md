@@ -57,9 +57,10 @@ root/
 ├── benchmarks/                 # Performance benchmarks (optional)
 ├── examples/                   # Example projects (optional)
 ├── changelog/unreleased/       # One changelog fragment per src/-touching PR
-├── docfx_project/              # DocFX source; the built site lives on the gh-pages branch
-├── docs/                       # Repository guides (workflow security, release setup, stacked PRs, baseline)
-├── scripts/                    # PowerShell tooling (setup, build-pr, changelog, format, rulesets, Pages, restack, audit)
+├── mkdocs.yml                  # MkDocs site config; mkdocs.yaml builds docs/ and deploys it with actions/deploy-pages
+├── overrides/                  # MkDocs theme overrides
+├── docs/                       # The gardening site's pages, plus repository guides kept out of the site (workflow security, stacked PRs, README formatting, baseline)
+├── scripts/                    # PowerShell tooling (build-pr, changelog, format, rulesets, label and maintenance setup, action pinning, restack, security alerts, TFM parity, third-party notices, upgrade)
 ├── .githooks/pre-commit        # gitleaks secret scan
 └── .github/                    # Workflows, issue/PR templates, CODEOWNERS, dependabot, license-audit, pip requirements
 ```
@@ -73,7 +74,7 @@ root/
 - **`CONTRIBUTING.md`**, **`SECURITY.md`**, **`CODE_OF_CONDUCT.md`**: contribution guidelines, reporting channel + response timelines, Contributor Covenant.
 
 ### GitHub Integration
-- **Workflows** (`.github/workflows/`): `pr.yaml` (the gated PR pipeline), `release.yaml` (release → NuGet trusted publishing + attestation + docs), `docfx.yaml` (versioned docs deploy, called by release), `codeql.yaml`, `actions-audit.yaml` (actionlint + zizmor), `scorecard.yaml`, `semgrep.yaml`, `license-audit.yaml`, `sbom.yaml`, `sourcelink.yaml`, `security-alerts.yml` (nightly alert → issue triage), `stryker.yaml`, `benchmarks.yaml`, `build-all-versions.yaml`.
+- **Workflows** (`.github/workflows/`): `pr.yaml` (the gated PR pipeline), `protected-files.yaml` (protected-file guard), `mkdocs.yaml` (builds and deploys the MkDocs site to GitHub Pages), `codeql.yaml`, `actions-audit.yaml` (actionlint + zizmor), `scorecard.yaml`, `semgrep.yaml`, `license-audit.yaml`, `sbom.yaml`, `sourcelink.yaml`, `security-alerts.yml` (nightly alert → issue triage), `stryker.yaml`, `template-deps.yaml`, `copilot-code-review.yml`. There is no release workflow: both `src/` projects are `IsPackable=false` and nothing is published to NuGet.
 - **Issue templates** (all YAML forms): bug report, feature request, maintenance task.
 - **PR template**: structured checklist.
 - **CODEOWNERS**: default owner `@Chris-Wolfgang`, update as needed.

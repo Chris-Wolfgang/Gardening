@@ -55,7 +55,7 @@ public static class SavedBeds
     /// <returns>
     /// The beds, or <see langword="null"/> when nothing usable was saved: no JSON, JSON that does not
     /// parse, another version, an empty list, or a list with any bed that is missing, names an undefined
-    /// option, or is out of the range the page accepts (see <see cref="BedEstimator"/>).
+    /// option or a board the page does not offer, or is out of the range the page accepts (see <see cref="BedEstimator"/>).
     /// </returns>
     public static List<BedOrder>? Deserialize(string? json)
     {
@@ -98,9 +98,17 @@ public static class SavedBeds
     // Stored state outlives the code that wrote it, so check everything the page would otherwise trip over.
     private static BedOrder? ToOrder(SavedBed? bed)
     {
-        return bed is { BoardName: { } boardName } && IsInRange(bed)
+        return bed is { BoardName: { } boardName } && IsKnownBoard(boardName) && IsInRange(bed)
             ? new BedOrder(ToForm(bed, boardName)) { Quantity = bed.Quantity }
             : null;
+    }
+
+
+
+    // BedForm.Board falls back to a 2x6 for an unknown name, which would estimate a different bed than was saved.
+    private static bool IsKnownBoard(string boardName)
+    {
+        return BoardProfile.TwoByWallBoards.Any(board => string.Equals(board.Name, boardName, StringComparison.Ordinal));
     }
 
 

@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Wolfgang.Gardening.Calculator.Web.Tests.Unit;
 
 public class BedEstimateTests
@@ -60,5 +62,41 @@ public class BedEstimateTests
         var estimate = new BedEstimate([new BedLine(Bed, 2, 2, 10m)], NoLumber, MaterialCatalog.Placeholder.Screws, []);
 
         Assert.Equal((64, 20m), (estimate.Screws, estimate.SoilCubicFeet));
+    }
+
+
+
+    [Fact]
+    public void CutPatterns_when_the_culture_uses_a_decimal_comma_keeps_different_cuts_apart()
+    {
+        var stock = new StockOption(new LumberKind(BoardProfile.TwoBySix, Treatment.PressureTreated), 96m, 10m);
+        var lumber = new PackingResult([new PackedBoard(stock, [1.5m, 2m], 92.5m), new PackedBoard(stock, [1m, 5.2m], 89.8m)]);
+        var culture = CultureInfo.CurrentCulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("de-DE");
+
+            var patterns = new BedEstimate([], lumber, MaterialCatalog.Placeholder.Screws, []).CutPatterns;
+
+            Assert.Equal(2, patterns.Count);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = culture;
+        }
+    }
+
+
+
+    [Fact]
+    public void CutPatterns_when_cuts_differ_only_in_trailing_zeros_groups_them_together()
+    {
+        var stock = new StockOption(new LumberKind(BoardProfile.TwoBySix, Treatment.PressureTreated), 96m, 10m);
+        var lumber = new PackingResult([new PackedBoard(stock, [96m], 0m), new PackedBoard(stock, [96.0m], 0m)]);
+
+        var pattern = Assert.Single(new BedEstimate([], lumber, MaterialCatalog.Placeholder.Screws, []).CutPatterns);
+
+        Assert.Equal(2, pattern.Count);
     }
 }

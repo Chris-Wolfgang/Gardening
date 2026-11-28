@@ -91,6 +91,8 @@ public class SavedBedsTests
 
     [Theory]
     [InlineData("boardName", "null")]
+    [InlineData("boardName", "\"2x3\"")]
+    [InlineData("boardName", "\"2X6\"")]
     [InlineData("treatment", "7")]
     [InlineData("lengthUnit", "5")]
     [InlineData("widthUnit", "5")]
